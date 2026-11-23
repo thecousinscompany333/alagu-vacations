@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { assertCaptcha } from "@/lib/captcha";
 import { DEMO_COOKIE, checkDemoPassword, createAccessToken, isDemoConfigured, isDemoMode, safeNextPath } from "@/lib/demo";
 
 // Best-effort brute-force slowdown (per server instance). Combined with a fixed delay per
@@ -25,6 +26,9 @@ export async function POST(req: NextRequest) {
   const form = await req.formData();
   const next = safeNextPath(String(form.get("next") ?? "/"));
   const back = (error: string) => redirect(req, `/demo-access?error=${error}&next=${encodeURIComponent(next)}`);
+
+  const captcha = await assertCaptcha(form);
+  if (!captcha.ok) return back("captcha");
 
   if (!isDemoConfigured()) return back("config");
 

@@ -7,6 +7,7 @@ import { WhatsAppIcon } from "@/components/icons";
 import { getSettings, getVehicles } from "@/lib/data";
 import { formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
 import { isDemoMode } from "@/lib/demo";
+import { STATIC_DATE_MIN } from "@/lib/validation";
 
 export const metadata: Metadata = {
   title: "Book Your Trip",
@@ -102,7 +103,7 @@ async function PrefilledForm({
     const v = sp[k];
     if (typeof v === "string") prefill[k] = v.slice(0, 160);
   }
-  return <BookingForm prefill={prefill} demo={isDemoMode()} {...rest} />;
+  return <BookingForm prefill={prefill} minDate={STATIC_DATE_MIN} demo={isDemoMode()} {...rest} />;
 }
 
 function Step({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {

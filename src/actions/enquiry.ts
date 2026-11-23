@@ -1,5 +1,6 @@
 "use server";
 
+import { assertCaptcha } from "@/lib/captcha";
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { assertDemoAccess } from "@/lib/demo-server";
@@ -22,8 +23,13 @@ export async function submitEnquiry(_prev: EnquiryState, formData: FormData): Pr
   // Spam protection: hidden honeypot field + minimum time on page.
   const honeypot = String(formData.get("company") ?? "");
   const startedAt = Number(formData.get("started_at") ?? 0);
-  if (honeypot || (startedAt && Date.now() - startedAt < 2500)) {
+  if (honeypot || (startedAt && Date.now() - startedAt < 3000)) {
     return { status: "error", message: "Something went wrong. Please try again in a moment.", values };
+  }
+
+  const captcha = await assertCaptcha(formData);
+  if (!captcha.ok) {
+    return { status: "error", message: captcha.message, values };
   }
 
   if (!formData.get("consent")) {

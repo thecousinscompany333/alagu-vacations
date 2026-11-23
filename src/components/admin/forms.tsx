@@ -11,12 +11,20 @@ export const adminInput =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-ink focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-100";
 export const adminLabel = "mb-1 block text-sm font-medium text-slate-700";
 
-export function SubmitButton({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function SubmitButton({
+  children,
+  className = "",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className={`inline-flex items-center justify-center gap-2 rounded-lg bg-navy-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-700 disabled:opacity-60 ${className}`}
     >
       {pending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} {children}

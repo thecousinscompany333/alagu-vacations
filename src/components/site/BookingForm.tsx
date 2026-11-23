@@ -8,6 +8,7 @@ import { WhatsAppIcon } from "@/components/icons";
 import { TRIP_TYPES } from "@/lib/types";
 import { buildEnquiryMessage, formatDate, formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
 import { todayInIndia } from "@/lib/validation";
+import { TurnstileField } from "@/components/site/TurnstileField";
 import { useClientValue } from "@/lib/use-client-value";
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
   vehicleOptions: string[];
   phone: string | null;
   whatsapp: string | null;
+  /** Earliest selectable pickup/return date (Asia/Kolkata), from the server render. */
+  minDate: string;
   demo?: boolean;
 };
 
@@ -24,23 +27,30 @@ const ok = "border-navy-100 focus:border-gold-500 focus:ring-gold-300/50";
 const bad = "border-red-400 focus:border-red-500 focus:ring-red-200";
 const lbl = "mb-1.5 block text-sm font-semibold text-navy-900";
 
-export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, demo = false }: Props) {
+export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate, demo = false }: Props) {
   const [state, action, pending] = useActionState<EnquiryState, FormData>(submitEnquiry, { status: "idle" });
   const formRef = useRef<HTMLFormElement>(null);
-  const today = useClientValue<string | undefined>(todayInIndia, undefined);
+  const today = useClientValue(todayInIndia, minDate);
   const startedAtRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
+  const [captchaKey, setCaptchaKey] = useState(0);
+  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
   // Records when the visitor started filling the form (spam check in the server action).
   useEffect(() => {
     if (startedAtRef.current && !startedAtRef.current.value) startedAtRef.current.value = String(Date.now());
-  });
+  }, []);
 
   useEffect(() => {
     if (state.status === "success" || state.status === "error") {
       document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [state]);
+    if (state.status === "error") {
+      setCaptchaKey((k) => k + 1);
+      setCaptchaReady(!hasTurnstile);
+    }
+  }, [state, hasTurnstile]);
 
   if (state.status === "success") {
     const e = state.enquiry;
@@ -263,10 +273,19 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, demo = f
         </span>
       </label>
 
+      <div className="mt-6">
+        <TurnstileField
+          action="booking-enquiry"
+          resetKey={captchaKey}
+          onSuccess={() => setCaptchaReady(true)}
+          onExpire={() => setCaptchaReady(false)}
+        />
+      </div>
+
       <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !captchaReady}
           className="inline-flex items-center justify-center gap-2 rounded-full bg-navy-800 px-8 py-4 font-semibold text-white transition hover:bg-navy-700 disabled:cursor-wait disabled:opacity-70"
         >
           {pending ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Sending…</> : "Submit Booking Enquiry"}

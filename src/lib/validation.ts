@@ -17,6 +17,9 @@ export function todayInIndia(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 }
 
+/** Stable `min` for date inputs on statically prerendered pages (real “today” is applied on the client). */
+export const STATIC_DATE_MIN = "2020-01-01";
+
 export const enquirySchema = z
   .object({
     full_name: z.string().trim().min(2, "Please enter your full name").max(100),

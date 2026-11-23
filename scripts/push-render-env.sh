@@ -15,4 +15,6 @@ Set in Render → alagu-vacations → Environment, then redeploy:
 NEXT_PUBLIC_SUPABASE_URL=$URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON
 NEXT_PUBLIC_SITE_URL=$SITE
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=<from Cloudflare Turnstile>
+TURNSTILE_SECRET_KEY=<from Cloudflare Turnstile>
 EOF

@@ -15,6 +15,7 @@ import { INDIA_REGION_ENQUIRIES } from "@/lib/regions";
 import { faqJsonLd, homeDescription, localBusinessJsonLd } from "@/lib/seo";
 import { formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
 import type { TravelPackage } from "@/lib/types";
+import { STATIC_DATE_MIN } from "@/lib/validation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
@@ -90,7 +91,7 @@ export default async function HomePage() {
 
       {/* ------------------------------------------------------- Quick booking */}
       <section aria-label="Quick booking" className="relative z-10 mx-auto -mt-28 max-w-7xl px-4 sm:px-6 lg:-mt-32 lg:px-8">
-        <QuickBooking />
+        <QuickBooking minDate={STATIC_DATE_MIN} />
       </section>
 
       {/* ---------------------------------------------------------------- About */}

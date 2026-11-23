@@ -60,7 +60,7 @@ A premium, mobile-first website for **Alagu Vacations** (Dindigul, Tamil Nadu). 
 | Area | What it does |
 |---|---|
 | Home | Sticky navigation; hero with real van photos; quick-booking widget (pickup, destination, dates, passengers, trip type → *Check Availability*); About; Our Vehicles; Packages / Trip types; Why Choose Us; Instagram-style gallery with lightbox; booking CTA; contact with click-to-call, WhatsApp, Instagram and Google Map; footer |
-| `/book` | Full booking enquiry form, pre-filled from the quick-booking widget or any *Enquire Now* button. Server-side validation, spam protection (honeypot + timing + per-mobile rate limit), consent checkbox. |
+| `/book` | Full booking enquiry form, pre-filled from the quick-booking widget or any *Enquire Now* button. Server-side validation, spam protection (Cloudflare Turnstile + honeypot + timing + per-mobile rate limit), consent checkbox. |
 | Confirmation | Shows a unique reference (e.g. `AV-261118-34049`), a trip summary, a clear "enquiry, not a confirmed booking" notice, and a **Send details on WhatsApp** button with every detail pre-filled |
 | WhatsApp | Floating button, *Enquire on WhatsApp instead* (sends the form contents without saving), and a post-submit message. Uses the verified number only. |
 | Mobile | Sticky *Call Now / Book Your Trip* bar, full-screen menu, responsive layouts |
@@ -147,6 +147,8 @@ The full SQL is in `supabase/migrations/20261118000000_initial_schema.sql`.
 | `NEXT_PUBLIC_SUPABASE_URL` | Vercel + local | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel + local | Anon / publishable key (RLS-protected) |
 | `NEXT_PUBLIC_SITE_URL` | Vercel + local | Canonical site URL for sitemap and Open Graph |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Vercel + local + Render | Cloudflare Turnstile site key (CAPTCHA on booking / login / preview) |
+| `TURNSTILE_SECRET_KEY` | Vercel + Render only | Turnstile secret — never expose to the browser |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Your machine only** | Used only by `scripts/create-admin.mjs`. Never add to Vercel. |
 
 Copy `.env.example` to `.env.local`. No secrets are hard-coded.

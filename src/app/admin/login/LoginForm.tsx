@@ -1,11 +1,24 @@
 "use client";
 
 import { useActionState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "@/actions/admin";
 import { SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
+import { TurnstileField } from "@/components/site/TurnstileField";
 
 export function LoginForm() {
   const [state, action] = useActionState(signIn, null);
+  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const [captchaKey, setCaptchaKey] = useState(0);
+  const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
+
+  useEffect(() => {
+    if (state && !state.ok) {
+      setCaptchaKey((k) => k + 1);
+      setCaptchaReady(!hasTurnstile);
+    }
+  }, [state, hasTurnstile]);
+
   return (
     <form action={action} className="mt-8 space-y-4">
       <div>
@@ -17,7 +30,15 @@ export function LoginForm() {
         <input id="password" name="password" type="password" required autoComplete="current-password" className={adminInput} />
       </div>
       {state && !state.ok && <p role="alert" className="text-sm text-red-700">{state.message}</p>}
-      <SubmitButton className="w-full py-3">Sign in</SubmitButton>
+      <TurnstileField
+        action="admin-login"
+        resetKey={captchaKey}
+        onSuccess={() => setCaptchaReady(true)}
+        onExpire={() => setCaptchaReady(false)}
+      />
+      <SubmitButton className="w-full py-3" disabled={!captchaReady}>
+        Sign in
+      </SubmitButton>
     </form>
   );
 }

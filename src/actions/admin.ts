@@ -3,6 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { assertCaptcha } from "@/lib/captcha";
 import { requireAdmin } from "@/lib/auth";
 import { assertDemoAccess } from "@/lib/demo-server";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -15,6 +16,9 @@ export type ActionResult = { ok: boolean; message: string } | null;
 
 export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   await assertDemoAccess();
+  const captcha = await assertCaptcha(formData);
+  if (!captcha.ok) return { ok: false, message: captcha.message };
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { ok: false, message: "Enter your email and password." };
