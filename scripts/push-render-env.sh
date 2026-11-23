@@ -15,4 +15,8 @@ Set in Render → alagu-vacations → Environment, then redeploy:
 NEXT_PUBLIC_SUPABASE_URL=$URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON
 NEXT_PUBLIC_SITE_URL=$SITE
+
+# Optional WhatsApp alert on new enquiry (server-only, set in Render manually):
+# WHATSAPP_NOTIFY_PHONE=917010998586
+# WHATSAPP_CALLMEBOT_APIKEY=...
 EOF

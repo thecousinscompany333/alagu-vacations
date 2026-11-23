@@ -3,6 +3,7 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { assertDemoAccess } from "@/lib/demo-server";
+import { notifyAdminNewEnquiry } from "@/lib/notify-whatsapp";
 import { enquirySchema, type EnquiryInput, type FieldErrors } from "@/lib/validation";
 
 export type EnquiryState =
@@ -75,6 +76,8 @@ export async function submitEnquiry(_prev: EnquiryState, formData: FormData): Pr
       : "We couldn't save your enquiry just now. Please try again, or call / WhatsApp us.";
     return { status: "error", message: friendly, values };
   }
+
+  void notifyAdminNewEnquiry(data, e);
 
   return { status: "success", reference: data, enquiry: e };
 }
