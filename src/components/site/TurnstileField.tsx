@@ -3,9 +3,9 @@
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useEffect, useRef, useState } from "react";
 
-const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-
 type Props = {
+  /** Site key from the server (preferred — works when env is set on Render without a client rebuild). */
+  siteKey?: string;
   /** Passed to Turnstile for analytics; e.g. "enquiry", "admin-login". */
   action?: string;
   /** Bump after a failed submit so the visitor must solve again. */
@@ -28,10 +28,17 @@ function turnstileHelp(code: string | number | undefined): string {
   );
 }
 
-export function TurnstileField({ action = "submit", resetKey = 0, onSuccess, onExpire }: Props) {
+export function TurnstileField({
+  siteKey: siteKeyProp,
+  action = "submit",
+  resetKey = 0,
+  onSuccess,
+  onExpire,
+}: Props) {
   const ref = useRef<TurnstileInstance>(null);
   const [mounted, setMounted] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const siteKey = siteKeyProp ?? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   useEffect(() => setMounted(true), []);
   useEffect(() => setLoadError(null), [resetKey]);
 

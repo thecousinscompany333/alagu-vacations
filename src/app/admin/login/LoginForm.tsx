@@ -6,9 +6,9 @@ import { signIn } from "@/actions/admin";
 import { SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { TurnstileField } from "@/components/site/TurnstileField";
 
-export function LoginForm() {
+export function LoginForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
   const [state, action] = useActionState(signIn, null);
-  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const hasTurnstile = Boolean(turnstileSiteKey);
   const [captchaKey, setCaptchaKey] = useState(0);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
@@ -31,6 +31,7 @@ export function LoginForm() {
       </div>
       {state && !state.ok && <p role="alert" className="text-sm text-red-700">{state.message}</p>}
       <TurnstileField
+        siteKey={turnstileSiteKey}
         action="admin-login"
         resetKey={captchaKey}
         onSuccess={() => setCaptchaReady(true)}

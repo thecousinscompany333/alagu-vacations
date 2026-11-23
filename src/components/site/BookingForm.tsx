@@ -18,6 +18,7 @@ type Props = {
   whatsapp: string | null;
   /** Earliest selectable pickup/return date (Asia/Kolkata), from the server render. */
   minDate: string;
+  turnstileSiteKey: string;
   demo?: boolean;
 };
 
@@ -27,14 +28,14 @@ const ok = "border-navy-100 focus:border-gold-500 focus:ring-gold-300/50";
 const bad = "border-red-400 focus:border-red-500 focus:ring-red-200";
 const lbl = "mb-1.5 block text-sm font-semibold text-navy-900";
 
-export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate, demo = false }: Props) {
+export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate, turnstileSiteKey, demo = false }: Props) {
   const [state, action, pending] = useActionState<EnquiryState, FormData>(submitEnquiry, { status: "idle" });
   const formRef = useRef<HTMLFormElement>(null);
   const today = useClientValue(todayInIndia, minDate);
   const startedAtRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [captchaKey, setCaptchaKey] = useState(0);
-  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const hasTurnstile = Boolean(turnstileSiteKey);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
   // Records when the visitor started filling the form (spam check in the server action).
@@ -275,6 +276,7 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
 
       <div className="mt-6">
         <TurnstileField
+          siteKey={turnstileSiteKey}
           action="booking-enquiry"
           resetKey={captchaKey}
           onSuccess={() => setCaptchaReady(true)}

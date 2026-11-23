@@ -4,9 +4,19 @@ import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TurnstileField } from "@/components/site/TurnstileField";
 
-export function DemoGateForm({ next, error, info }: { next: string; error?: string; info?: string }) {
+export function DemoGateForm({
+  next,
+  turnstileSiteKey,
+  error,
+  info,
+}: {
+  next: string;
+  turnstileSiteKey: string;
+  error?: string;
+  info?: string;
+}) {
   const [captchaKey, setCaptchaKey] = useState(0);
-  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const hasTurnstile = Boolean(turnstileSiteKey);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
   useEffect(() => {
@@ -46,6 +56,7 @@ export function DemoGateForm({ next, error, info }: { next: string; error?: stri
         </p>
       )}
       <TurnstileField
+        siteKey={turnstileSiteKey}
         action="demo-access"
         resetKey={captchaKey}
         onSuccess={() => setCaptchaReady(true)}

@@ -15,13 +15,14 @@ const label = "mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold upperc
 type QuickBookingProps = {
   /** Earliest selectable date (Asia/Kolkata), from the server render. */
   minDate: string;
+  turnstileSiteKey: string;
 };
 
 /** Hero widget: collects trip basics, then hands off to the full booking form. */
-export function QuickBooking({ minDate }: QuickBookingProps) {
+export function QuickBooking({ minDate, turnstileSiteKey }: QuickBookingProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const hasTurnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const hasTurnstile = Boolean(turnstileSiteKey);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
   // Computed after mount so prerendering never depends on the current time.
   const today = useClientValue(todayInIndia, minDate);
@@ -94,6 +95,7 @@ export function QuickBooking({ minDate }: QuickBookingProps) {
 
       <div className="mt-4">
         <TurnstileField
+          siteKey={turnstileSiteKey}
           action="quick-booking"
           onSuccess={() => setCaptchaReady(true)}
           onExpire={() => setCaptchaReady(false)}

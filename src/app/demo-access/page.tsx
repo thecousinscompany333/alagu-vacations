@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { DemoGateForm } from "@/app/demo-access/DemoGateForm";
 import { isDemoMode, safeNextPath } from "@/lib/demo";
+import { turnstileSiteKey } from "@/lib/turnstile-public";
 
 export const metadata: Metadata = {
   title: "Private preview",
@@ -31,7 +32,7 @@ export default function DemoAccessPage(props: PageProps<"/demo-access">) {
             This website is shared privately for review. Enter the preview password you were given.
           </p>
         </div>
-        <Suspense fallback={<DemoGateForm next="/" />}>
+        <Suspense fallback={<DemoGateForm next="/" turnstileSiteKey={turnstileSiteKey()} />}>
           <GateFormFromParams searchParams={props.searchParams} />
         </Suspense>
         <p className="mt-6 text-center text-xs text-muted">
@@ -50,6 +51,7 @@ async function GateFormFromParams({ searchParams }: { searchParams: PageProps<"/
   return (
     <DemoGateForm
       next={next}
+      turnstileSiteKey={turnstileSiteKey()}
       error={error}
       info={signedOut ? "You've left the preview on this device." : undefined}
     />
