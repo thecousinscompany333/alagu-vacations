@@ -10,8 +10,13 @@ import { isDemoMode } from "@/lib/demo";
 
 export const metadata: Metadata = {
   title: "Book Your Trip",
-  description: "Send a van and travel booking enquiry to Alagu Vacations, Dindigul. We'll confirm availability and call you back.",
+  description:
+    "Book Force Urbania van hire and all-India tour enquiries with Alagu Vacations, Dindigul (since 1992). Family, college, pilgrimage, honeymoon and package trips — no online payment.",
   alternates: { canonical: "/book" },
+  openGraph: {
+    title: "Book Your Trip | Alagu Vacations",
+    description: "Send your route, dates and passenger count. We confirm availability by phone or WhatsApp.",
+  },
 };
 
 const PREFILL_KEYS = ["pickup_location", "destination", "pickup_date", "return_date", "passengers", "trip_type", "vehicle_preference"];

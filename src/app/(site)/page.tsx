@@ -1,15 +1,35 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight, Calendar, Compass, Heart, MapPin, Phone, Route, ShieldCheck, Snowflake, Sparkles, Users, Wallet,
+  ArrowRight, Calendar, Church, Compass, GraduationCap, Heart, MapPin, Phone, Plane, Route, ShieldCheck, Snowflake,
+  Sparkles, Users, Wallet,
 } from "lucide-react";
 import { Gallery } from "@/components/site/Gallery";
+import { JsonLd } from "@/components/site/JsonLd";
 import { QuickBooking } from "@/components/site/QuickBooking";
 import { VehicleCard } from "@/components/site/VehicleCard";
 import { InstagramIcon, WhatsAppIcon } from "@/components/icons";
 import { getGallery, getPackages, getSettings, getVehicles } from "@/lib/data";
+import { INDIA_REGION_ENQUIRIES } from "@/lib/regions";
+import { faqJsonLd, homeDescription, localBusinessJsonLd } from "@/lib/seo";
 import { formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
 import type { TravelPackage } from "@/lib/types";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const description = homeDescription(settings);
+  return {
+    title: { absolute: "Alagu Vacations | All-India Tours & Force Urbania Rental, Dindigul" },
+    description,
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: "Alagu Vacations | Tours & Holiday Packages",
+      description,
+      images: [{ url: "/images/van-front.webp", alt: "Alagu Vacations Force Urbania van" }],
+    },
+  };
+}
 
 export default async function HomePage() {
   const [settings, vehicles, packages, gallery] = await Promise.all([
@@ -20,6 +40,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={[localBusinessJsonLd(settings), faqJsonLd()]} />
       {/* ------------------------------------------------------------------ Hero */}
       <section id="home" className="relative overflow-hidden bg-navy-900 bg-ornament pt-28 text-white sm:pt-32">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-40 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:pb-48">
@@ -30,11 +51,12 @@ export default async function HomePage() {
               </p>
             )}
             <h1 className="mt-6 font-display text-4xl font-semibold leading-[1.08] sm:text-5xl lg:text-6xl">
-              Your Journey <span className="text-gold-500">Begins</span> With Us
+              All Over India — <span className="text-gold-500">Travel</span> With Comfort &amp; Care
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
-              Explore more, travel comfortably, and create unforgettable memories with Alagu Vacations. Budget trips and
-              package trips for your family and friends, from Dindigul.
+              From mountains to beaches, temples to cities — plan group journeys across India in our 16-seater A/C Force
+              Urbania. Family, college, pilgrimage, honeymoon and customized package enquiries from Dindigul, backed by{" "}
+              <strong className="font-semibold text-white">Alagu Travels since 1992</strong>.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link href="/book" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold-500 px-7 py-4 font-semibold text-navy-950 shadow-lift transition hover:bg-gold-300">
@@ -47,7 +69,7 @@ export default async function HomePage() {
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-6">
               <Stat value="16" label="Seater A/C van" />
               <Stat value="New" label="Force Urbania" />
-              <Stat value="Dindigul" label="Tamil Nadu" />
+              <Stat value="India" label="All-India routes" />
             </dl>
           </div>
 
@@ -88,9 +110,9 @@ export default async function HomePage() {
               Comfortable journeys for families and friends
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-muted">
-              Alagu Vacations offers <strong className="text-ink">tours and holiday packages</strong> from Dindigul. Whether
-              you want a budget-friendly getaway or a planned package trip, we take care of the travel so you can enjoy the
-              journey.
+              Alagu Vacations offers <strong className="text-ink">tours and holiday packages</strong> from Dindigul. We take
+              booking enquiries for trips across India — budget getaways, planned packages, and routes you design with our team.
+              Explore more, travel comfortably, and discover incredible India together.
             </p>
             <ul className="mt-7 grid gap-4 sm:grid-cols-2">
               <Point icon={<Wallet />} title="Budget-friendly trips" text="Trips for all your friends and family." />
@@ -114,6 +136,31 @@ export default async function HomePage() {
           <div className="mt-12 grid gap-8">
             {vehicles.map((v) => <VehicleCard key={v.id} vehicle={v} />)}
           </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------- India regions */}
+      <section id="regions" className="bg-ivory py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            label="Explore India"
+            title="Popular regions we plan for you"
+            text="Tell us your region and dates — we confirm route, permits and availability. Prices are shared after enquiry (no fixed rates published online)."
+          />
+          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {INDIA_REGION_ENQUIRIES.map((r) => (
+              <li key={r.name} className="rounded-[1.25rem] bg-white p-5 shadow-card ring-1 ring-navy-100">
+                <h3 className="font-display text-xl font-semibold text-navy-900">{r.name}</h3>
+                <p className="mt-2 text-sm text-muted">{r.blurb}</p>
+                <Link
+                  href={`/book?destination=${encodeURIComponent(r.destination)}&trip_type=${encodeURIComponent("Package trip")}#booking-form`}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-gold-600"
+                >
+                  Enquire for {r.name} <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -149,11 +196,15 @@ export default async function HomePage() {
               {packages.map((p) => <PackageCard key={p.id} p={p} />)}
             </ul>
           ) : (
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <TripType icon={<Wallet />} title="Budget trips" text="Affordable group trips without compromising on comfort." type="Budget trip" />
               <TripType icon={<Compass />} title="Package trips" text="Planned trips with your destinations and stops in one package." type="Package trip" />
-              <TripType icon={<Users />} title="Family trips" text="Holidays and outings with the whole family." type="Family trip" />
-              <TripType icon={<Heart />} title="Friends & groups" text="Day outings and weekend getaways with your gang." type="Friends / group trip" />
+              <TripType icon={<Sparkles />} title="Customized packages" text="Your route, your pace — we plan the journey with you." type="Customized package" />
+              <TripType icon={<Users />} title="Family tours" text="Holidays and outings with the whole family." type="Family trip" />
+              <TripType icon={<Heart />} title="Friends & group tours" text="Day outings and weekend getaways with your gang." type="Friends / group trip" />
+              <TripType icon={<GraduationCap />} title="College trips" text="Excursions and study tours for student groups." type="College trip" />
+              <TripType icon={<Church />} title="Pilgrimage tours" text="Temple circuits and devotional journeys across India." type="Pilgrimage / temple visit" />
+              <TripType icon={<Plane />} title="Honeymoon trips" text="Comfortable private group travel for your celebration." type="Honeymoon trip" />
             </ul>
           )}
         </div>
@@ -169,7 +220,7 @@ export default async function HomePage() {
             <Why icon={<ShieldCheck />} title="Experienced drivers" text="Well-organised journeys with experienced drivers." />
             <Why icon={<Wallet />} title="Budget-friendly" text="Trips planned for families and friends, at budget-friendly prices." />
             <Why icon={<Calendar />} title="Flexible planning" text="Day trips or multi-day trips. Tell us your plan and dates." />
-            <Why icon={<MapPin />} title="Local to Dindigul" text="A Dindigul business you can reach directly by phone or WhatsApp." />
+            <Why icon={<MapPin />} title="All-India enquiries" text="Outstation routes across India — planned from Dindigul with clear follow-up by phone or WhatsApp." />
           </ul>
         </div>
       </section>

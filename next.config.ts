@@ -34,6 +34,8 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   turbopack: {
+    // Parent directory has an unrelated package-lock.json; keep resolution inside this repo.
+    root: process.cwd(),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

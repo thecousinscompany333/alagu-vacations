@@ -26,7 +26,7 @@ values (
   'Force Urbania',
   16,
   array['Air-conditioned (A/C)', 'Individual high-back seats', 'Roof-mounted A/C vents', 'Ceiling LED lighting', 'Touchscreen infotainment'],
-  array['Family trips', 'Friends trips', 'Budget trips', 'Package trips'],
+  array['Family trips', 'Friends trips', 'Budget trips', 'Package trips', 'College trips', 'Pilgrimage tours', 'Honeymoon trips', 'Customized packages'],
   'Our brand-new Force Urbania, launched in November 2026, built for comfortable group travel.',
   '/images/van-front.webp',
   array['/images/van-front.webp', '/images/van-side.webp', '/images/interior-cabin.webp',

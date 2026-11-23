@@ -32,7 +32,16 @@ export const FALLBACK_VEHICLES: Vehicle[] = [
       "Ceiling LED lighting",
       "Touchscreen infotainment",
     ],
-    trip_types: ["Family trips", "Friends trips", "Budget trips", "Package trips"],
+    trip_types: [
+      "Family trips",
+      "Friends trips",
+      "Budget trips",
+      "Package trips",
+      "College trips",
+      "Pilgrimage tours",
+      "Honeymoon trips",
+      "Customized packages",
+    ],
     description:
       "Our brand-new Force Urbania, launched in November 2026, built for comfortable group travel.",
     image_url: "/images/van-front.webp",

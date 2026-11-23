@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Manrope, Playfair_Display } from "next/font/google";
 import { SITE_URL } from "@/lib/site";
 import { isDemoMode } from "@/lib/demo";
+import { DEFAULT_KEYWORDS } from "@/lib/seo";
 import { DemoBanner } from "@/components/DemoBanner";
 import "./globals.css";
 
@@ -10,7 +11,7 @@ const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["lati
 const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
 
 const description =
-  "Alagu Vacations, Dindigul: budget trips and package trips for families and friends in our brand-new 16-seater A/C Force Urbania. Send a booking enquiry online or on WhatsApp.";
+  "Alagu Vacations (Alagu Travels since 1992), Dindigul: all-India tour enquiries in a 16-seater A/C Force Urbania — family, college, pilgrimage, honeymoon and package trips. Book online or WhatsApp.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -19,14 +20,17 @@ export const metadata: Metadata = {
     template: "%s | Alagu Vacations",
   },
   description,
-  keywords: ["Alagu Vacations", "Dindigul travels", "Force Urbania rental", "16 seater van Dindigul", "tour packages Tamil Nadu", "family trip van"],
+  keywords: DEFAULT_KEYWORDS,
   openGraph: {
     type: "website",
     siteName: "Alagu Vacations",
     title: "Alagu Vacations | Tours & Holiday Packages",
     description,
     locale: "en_IN",
-    images: [{ url: "/images/poster-budget-package-trips.webp", width: 597, height: 343, alt: "Alagu Vacations: budget trips and package trips" }],
+    images: [
+      { url: "/images/van-front.webp", width: 1200, height: 900, alt: "Alagu Vacations Force Urbania van" },
+      { url: "/images/poster-budget-package-trips.webp", width: 597, height: 343, alt: "Alagu Vacations: budget trips and package trips" },
+    ],
   },
   twitter: { card: "summary_large_image" },
   icons: { icon: "/images/logo-crown.webp", apple: "/images/logo.webp" },
