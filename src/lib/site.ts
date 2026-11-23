@@ -42,10 +42,12 @@ function fmtDate(iso?: string) {
     : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/** Builds the WhatsApp message a customer sends to the business. */
+/** Builds the WhatsApp message sent to the business (wa.me) after a saved enquiry. */
 export function buildEnquiryMessage(e: EnquiryMessageInput): string {
   const lines = [
-    "Hello Alagu Vacations, I'd like to enquire about a trip.",
+    e.reference
+      ? "Hello Alagu Vacations — new booking enquiry from your website."
+      : "Hello Alagu Vacations, I'd like to enquire about a trip.",
     e.reference ? `Enquiry ref: ${e.reference}` : "",
     "",
     e.full_name ? `Name: ${e.full_name}` : "",

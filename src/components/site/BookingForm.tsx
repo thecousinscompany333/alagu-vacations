@@ -93,6 +93,12 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, demo = f
           This is an <strong>enquiry</strong>, not a confirmed booking. Your trip is confirmed only after we verify availability and
           speak with you.
         </p>
+        {wa && !demo && (
+          <p className="mx-auto mt-4 max-w-md text-sm text-muted">
+            <strong className="text-ink">Next step:</strong> tap the green button below, then press <strong>Send</strong> in
+            WhatsApp so your trip details reach Alagu on the same number you see on our site.
+          </p>
+        )}
 
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           {wa && (
@@ -100,9 +106,9 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, demo = f
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1fa855] px-6 py-3.5 font-semibold text-white hover:bg-[#178a45]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1fa855] px-6 py-3.5 font-semibold text-white shadow-sm hover:bg-[#178a45]"
             >
-              <WhatsAppIcon className="h-5 w-5" /> Send details on WhatsApp
+              <WhatsAppIcon className="h-5 w-5" /> Send enquiry to Alagu on WhatsApp
             </a>
           )}
           {phone && (
