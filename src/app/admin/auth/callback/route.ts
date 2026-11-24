@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { SITE_URL } from "@/lib/site";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
+
+function siteUrl(path: string) {
+  return new URL(path, SITE_URL);
+}
 
 /** Exchanges Supabase auth codes / recovery OTP and sets session cookies before redirect. */
 export async function GET(request: NextRequest) {
@@ -12,12 +17,11 @@ export async function GET(request: NextRequest) {
   const nextRaw = requestUrl.searchParams.get("next") ?? "/admin/reset-password";
   const nextPath = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/admin/reset-password";
 
-  const fail = () =>
-    NextResponse.redirect(new URL("/admin/login?error=reset-link", requestUrl.origin));
+  const fail = () => NextResponse.redirect(siteUrl("/admin/login?error=reset-link"));
 
   if (!code && !(tokenHash && type)) return fail();
 
-  let response = NextResponse.redirect(new URL(nextPath, requestUrl.origin));
+  let response = NextResponse.redirect(siteUrl(nextPath));
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
