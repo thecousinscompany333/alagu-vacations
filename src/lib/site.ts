@@ -68,4 +68,14 @@ export function formatDate(iso: string | null | undefined): string {
   return iso ? fmtDate(iso.slice(0, 10)) : "—";
 }
 
+const MS_PER_DAY = 86_400_000;
+
+/** Pending enquiries older than 24 hours (from created_at) need follow-up. */
+export function isPendingStale(status: string, createdAtIso: string, maxAgeMs = MS_PER_DAY): boolean {
+  if (status !== "pending") return false;
+  const created = Date.parse(createdAtIso);
+  if (Number.isNaN(created)) return false;
+  return Date.now() - created >= maxAgeMs;
+}
+
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

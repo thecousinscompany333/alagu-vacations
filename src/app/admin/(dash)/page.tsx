@@ -5,7 +5,7 @@ import { WhatsAppIcon } from "@/components/icons";
 import { Card, LoadingBlock, PageTitle, StatusBadge } from "@/components/admin/ui";
 import { adminInput } from "@/components/admin/forms";
 import { requireAdmin } from "@/lib/auth";
-import { formatDate, formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
+import { formatDate, formatPhone, isPendingStale, phoneDigits, whatsappLink } from "@/lib/site";
 import { ENQUIRY_STATUSES, type Enquiry, type EnquiryStatus } from "@/lib/types";
 
 export default function EnquiriesPage(props: PageProps<"/admin">) {
@@ -81,8 +81,17 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((e) => (
-                  <tr key={e.id} className="hover:bg-slate-50/70">
+                {rows.map((e) => {
+                  const stale = isPendingStale(e.status, e.created_at);
+                  return (
+                  <tr
+                    key={e.id}
+                    className={
+                      stale
+                        ? "border-l-4 border-l-red-500 bg-red-50 hover:bg-red-50/90"
+                        : "hover:bg-slate-50/70"
+                    }
+                  >
                     <td className="px-4 py-3">
                       <Link href={`/admin/enquiries/${e.id}`} className="font-semibold text-navy-900 hover:underline">{e.full_name}</Link>
                       <p className="text-xs text-slate-500">{formatPhone(e.mobile)} · <span className="font-mono">{e.reference}</span></p>
@@ -93,25 +102,42 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
                     <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
                     <td className="px-4 py-3"><RowActions e={e} /></td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
           {/* Mobile cards */}
           <ul className="mt-6 space-y-3 md:hidden">
-            {rows.map((e) => (
+            {rows.map((e) => {
+              const stale = isPendingStale(e.status, e.created_at);
+              return (
               <li key={e.id}>
-                <Card>
+                <Card
+                  className={
+                    stale
+                      ? "border-red-400 bg-red-50 ring-1 ring-red-200"
+                      : ""
+                  }
+                >
                   <div className="flex items-start justify-between gap-2">
                     <Link href={`/admin/enquiries/${e.id}`} className="font-semibold text-navy-900">{e.full_name}</Link>
-                    <StatusBadge status={e.status} />
+                    <div className="flex shrink-0 items-center gap-2">
+                      {stale ? (
+                        <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                          Overdue
+                        </span>
+                      ) : null}
+                      <StatusBadge status={e.status} />
+                    </div>
                   </div>
                   <p className="mt-1 text-sm">{e.pickup_location} → {e.destination}</p>
                   <p className="text-xs text-slate-500">{formatDate(e.pickup_date)} · {e.passengers} pax · <span className="font-mono">{e.reference}</span></p>
                   <div className="mt-3"><RowActions e={e} /></div>
                 </Card>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </>
       )}
