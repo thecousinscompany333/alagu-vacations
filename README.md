@@ -78,6 +78,7 @@ A premium, mobile-first website for **Alagu Vacations** (Dindigul, Tamil Nadu). 
 | Gallery | Upload, caption, hide or delete photos |
 | Business details | Phone, WhatsApp, email, address, Instagram, map location, about text, "since" line |
 | Forgot password | `/admin/forgot-password` sends a Supabase recovery email (Turnstile + admin-only when service role is configured); link lands on `/admin/reset-password` |
+| Admin users | `/admin/users` — add or remove dashboard admins (needs `SUPABASE_SERVICE_ROLE_KEY` on the server, e.g. Render env) |
 
 Content changes appear on the public site immediately (cache tag invalidation).
 

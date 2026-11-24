@@ -3,13 +3,32 @@
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
-import { CircleCheck, ImagePlus, Loader2, TriangleAlert, X } from "lucide-react";
+import { CircleCheck, Eye, EyeOff, ImagePlus, Loader2, TriangleAlert, X } from "lucide-react";
 import type { ActionResult } from "@/actions/admin";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
 export const adminInput =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-ink focus:border-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-100";
 export const adminLabel = "mb-1 block text-sm font-medium text-slate-700";
+
+/** Password input with show/hide control (use on primary password fields only, not confirm). */
+export function PasswordField({ className = adminInput, ...props }: React.ComponentProps<"input">) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input {...props} type={visible ? "text" : "password"} className={`${className} pr-10`} />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-navy-800"
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+      >
+        {visible ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+      </button>
+    </div>
+  );
+}
 
 export function SubmitButton({
   children,

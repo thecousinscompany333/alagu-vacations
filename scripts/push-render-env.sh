@@ -16,6 +16,7 @@ ANON="${2:-${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}}"
 SITE="${3:-${NEXT_PUBLIC_SITE_URL:-https://alagu-vacations.onrender.com}}"
 TURNSTILE_SITE="${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-<from Cloudflare Turnstile>}"
 TURNSTILE_SECRET="${TURNSTILE_SECRET_KEY:-<from Cloudflare Turnstile>}"
+SERVICE_ROLE="${SUPABASE_SERVICE_ROLE_KEY:-<from Supabase Settings → API → service_role>}"
 
 render workspace set tea-dc0jsgbm8hqs73eohtsg --confirm 2>/dev/null || true
 
@@ -28,4 +29,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON
 NEXT_PUBLIC_SITE_URL=$SITE
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=$TURNSTILE_SITE
 TURNSTILE_SECRET_KEY=$TURNSTILE_SECRET
+
+# Server-only (enables Add admin in dashboard + forgot-password admin check). Never expose to the browser.
+SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE
 EOF

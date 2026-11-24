@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import { signIn } from "@/actions/admin";
-import { SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
+import { PasswordField, SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { TurnstileField } from "@/components/site/TurnstileField";
 
 export function LoginForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
@@ -35,7 +35,7 @@ export function LoginForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
             Forgot password?
           </Link>
         </div>
-        <input id="password" name="password" type="password" required autoComplete="current-password" className={adminInput} />
+        <PasswordField id="password" name="password" required autoComplete="current-password" />
       </div>
       {state && !state.ok && <p role="alert" className="text-sm text-red-700">{state.message}</p>}
       <TurnstileField

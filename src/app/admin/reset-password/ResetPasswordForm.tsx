@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { completePasswordReset } from "@/actions/admin";
-import { SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
+import { PasswordField, SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { TurnstileField } from "@/components/site/TurnstileField";
 
 export function ResetPasswordForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
@@ -26,15 +26,7 @@ export function ResetPasswordForm({ turnstileSiteKey }: { turnstileSiteKey: stri
         <label htmlFor="password" className={adminLabel}>
           New password
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          className={adminInput}
-        />
+        <PasswordField id="password" name="password" required minLength={8} autoComplete="new-password" />
       </div>
       <div>
         <label htmlFor="password_confirm" className={adminLabel}>

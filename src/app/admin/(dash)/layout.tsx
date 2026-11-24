@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ExternalLink, Image as ImageIcon, Inbox, LogOut, Package, Settings, Bus } from "lucide-react";
+import { Bus, ExternalLink, Image as ImageIcon, Inbox, LogOut, Package, Settings, UserCog } from "lucide-react";
 import { signOut } from "@/actions/admin";
 import { getAdmin } from "@/lib/auth";
 
@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/packages", label: "Packages", icon: Package },
   { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
   { href: "/admin/settings", label: "Business details", icon: Settings },
+  { href: "/admin/users", label: "Admin users", icon: UserCog },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
