@@ -12,7 +12,7 @@ export default function PackagesAdminPage() {
     <>
       <PageTitle
         title="Travel packages"
-        text="Packages appear in the “Travel Packages” section, and their destinations in “Popular Destinations”. Until you add one, the site shows trip types instead."
+        text="Active packages appear under “Our travel packages” on the home page. The “Trips planned around you” trip types always stay visible below."
       />
       <Suspense fallback={<LoadingBlock />}><PackagesList /></Suspense>
     </>

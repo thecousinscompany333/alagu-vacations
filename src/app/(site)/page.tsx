@@ -39,6 +39,8 @@ export default async function HomePage() {
   ]);
   const wa = whatsappLink(settings.whatsapp, "Hello Alagu Vacations, I'd like to plan a trip.");
   const destinations = uniqueDestinations(packages);
+  // Avoid duplicating the same trip: destination tiles and package cards share one DB source.
+  const showDestinationTiles = destinations.length > 0 && packages.length === 0;
 
   return (
     <>
@@ -169,7 +171,7 @@ export default async function HomePage() {
       {/* -------------------------------------------- Destinations + Packages */}
       <section id="packages" className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {destinations.length > 0 && (
+          {showDestinationTiles && (
             <div className="mb-20">
               <SectionHeading label="Popular Destinations" title="Where we travel" />
               <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -188,27 +190,36 @@ export default async function HomePage() {
             </div>
           )}
 
+          {packages.length > 0 && (
+            <div className="mb-20">
+              <SectionHeading
+                label="Travel Packages"
+                title="Our travel packages"
+                text="Pick a package or ask us to customise one for your group."
+              />
+              <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {packages.map((p) => (
+                  <PackageCard key={p.id} p={p} />
+                ))}
+              </ul>
+            </div>
+          )}
+
           <SectionHeading
             label="Travel Packages"
-            title={packages.length ? "Our travel packages" : "Trips planned around you"}
-            text={packages.length ? "Pick a package or ask us to customise one for your group." : "Choose the kind of trip you want and tell us your destination. We'll check availability and plan the journey with you."}
+            title="Trips planned around you"
+            text="Choose the kind of trip you want and tell us your destination. We'll check availability and plan the journey with you."
           />
-          {packages.length > 0 ? (
-            <ul className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {packages.map((p) => <PackageCard key={p.id} p={p} />)}
-            </ul>
-          ) : (
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <TripType icon={<Wallet />} title="Budget trips" text="Affordable group trips without compromising on comfort." type="Budget trip" />
-              <TripType icon={<Compass />} title="Package trips" text="Planned trips with your destinations and stops in one package." type="Package trip" />
-              <TripType icon={<Sparkles />} title="Customized packages" text="Your route, your pace — we plan the journey with you." type="Customized package" />
-              <TripType icon={<Users />} title="Family tours" text="Holidays and outings with the whole family." type="Family trip" />
-              <TripType icon={<Heart />} title="Friends & group tours" text="Day outings and weekend getaways with your gang." type="Friends / group trip" />
-              <TripType icon={<GraduationCap />} title="College trips" text="Excursions and study tours for student groups." type="College trip" />
-              <TripType icon={<Church />} title="Pilgrimage tours" text="Temple circuits and devotional journeys across India." type="Pilgrimage / temple visit" />
-              <TripType icon={<Plane />} title="Honeymoon trips" text="Comfortable private group travel for your celebration." type="Honeymoon trip" />
-            </ul>
-          )}
+          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <TripType icon={<Wallet />} title="Budget trips" text="Affordable group trips without compromising on comfort." type="Budget trip" />
+            <TripType icon={<Compass />} title="Package trips" text="Planned trips with your destinations and stops in one package." type="Package trip" />
+            <TripType icon={<Sparkles />} title="Customized packages" text="Your route, your pace — we plan the journey with you." type="Customized package" />
+            <TripType icon={<Users />} title="Family tours" text="Holidays and outings with the whole family." type="Family trip" />
+            <TripType icon={<Heart />} title="Friends & group tours" text="Day outings and weekend getaways with your gang." type="Friends / group trip" />
+            <TripType icon={<GraduationCap />} title="College trips" text="Excursions and study tours for student groups." type="College trip" />
+            <TripType icon={<Church />} title="Pilgrimage tours" text="Temple circuits and devotional journeys across India." type="Pilgrimage / temple visit" />
+            <TripType icon={<Plane />} title="Honeymoon trips" text="Comfortable private group travel for your celebration." type="Honeymoon trip" />
+          </ul>
         </div>
       </section>
 
@@ -368,15 +379,21 @@ function PackageCard({ p }: { p: TravelPackage }) {
             {p.highlights.slice(0, 5).map((h) => <li key={h} className="flex gap-2"><span className="text-gold-500">•</span>{h}</li>)}
           </ul>
         )}
-        <div className="mt-auto flex items-end justify-between gap-3 pt-6">
-          <div>
-            {p.price != null ? (
-              <><p className="text-xs text-muted">Starting from</p><p className="font-display text-2xl font-semibold text-navy-900">₹{Number(p.price).toLocaleString("en-IN")}</p></>
-            ) : <p className="text-sm text-muted">Price on request</p>}
-            {p.price_note && <p className="text-xs text-muted">{p.price_note}</p>}
-          </div>
-          <Link href={`/book?destination=${encodeURIComponent(p.destination ?? p.title)}&trip_type=Package%20trip#booking-form`} className="rounded-full bg-navy-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-700">
-            Enquire Now
+        <div className="mt-auto pt-6">
+          {p.price != null ? (
+            <>
+              <p className="text-xs text-muted">Starting from</p>
+              <p className="font-display text-2xl font-semibold text-navy-900">₹{Number(p.price).toLocaleString("en-IN")}</p>
+            </>
+          ) : (
+            <p className="text-sm text-muted">Price on request</p>
+          )}
+          {p.price_note && <p className="mt-1 text-xs text-muted">{p.price_note}</p>}
+          <Link
+            href={`/book?destination=${encodeURIComponent(p.destination ?? p.title)}&trip_type=Package%20trip#booking-form`}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-navy-800 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-navy-700"
+          >
+            Enquire Now <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
       </div>
