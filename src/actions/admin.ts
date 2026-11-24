@@ -7,12 +7,92 @@ import { assertCaptcha } from "@/lib/captcha";
 import { requireAdmin } from "@/lib/auth";
 import { assertDemoAccess } from "@/lib/demo-server";
 import { createSessionClient } from "@/lib/supabase/server";
+import { isRegisteredAdminEmail } from "@/lib/supabase/service";
+import { SITE_URL } from "@/lib/site";
 import { CONTENT_TAG } from "@/lib/data";
 import { ENQUIRY_STATUSES } from "@/lib/types";
 
 export type ActionResult = { ok: boolean; message: string } | null;
 
 /* ------------------------------------------------------------------ auth */
+
+const RESET_EMAIL_SENT =
+  "If this email is registered for admin access, you will receive a password reset link shortly.";
+
+const passwordResetSchema = z
+  .object({
+    password: z.string().min(8, "Use at least 8 characters."),
+    password_confirm: z.string().min(8, "Confirm your password."),
+  })
+  .refine((v) => v.password === v.password_confirm, {
+    message: "Passwords do not match.",
+    path: ["password_confirm"],
+  });
+
+export async function requestPasswordReset(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  await assertDemoAccess();
+  const captcha = await assertCaptcha(formData);
+  if (!captcha.ok) return { ok: false, message: captcha.message };
+
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email || !z.string().email().safeParse(email).success) {
+    return { ok: false, message: "Enter a valid email address." };
+  }
+
+  if (!(await isRegisteredAdminEmail(email))) {
+    return { ok: true, message: RESET_EMAIL_SENT };
+  }
+
+  const supabase = await createSessionClient();
+  const redirectTo = `${SITE_URL}/admin/auth/callback?next=${encodeURIComponent("/admin/reset-password")}`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) {
+    console.error("[auth] resetPasswordForEmail:", error.message);
+    return { ok: true, message: RESET_EMAIL_SENT };
+  }
+  return { ok: true, message: RESET_EMAIL_SENT };
+}
+
+export async function completePasswordReset(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  await assertDemoAccess();
+  const captcha = await assertCaptcha(formData);
+  if (!captcha.ok) return { ok: false, message: captcha.message };
+
+  const parsed = passwordResetSchema.safeParse({
+    password: formData.get("password"),
+    password_confirm: formData.get("password_confirm"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const supabase = await createSessionClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { ok: false, message: "Your reset link expired. Request a new link from the forgot-password page." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("different") || msg.includes("same")) {
+      return { ok: false, message: "Choose a new password that is different from your current one." };
+    }
+    if (msg.includes("weak") || msg.includes("character")) {
+      return { ok: false, message: "Password is too weak. Use at least 8 characters with mixed characters." };
+    }
+    console.error("[auth] updateUser:", error.message);
+    return { ok: false, message: "Could not update password. Request a new link and try again." };
+  }
+
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin !== true) {
+    await supabase.auth.signOut();
+    return { ok: false, message: "This account does not have admin access." };
+  }
+
+  redirect("/admin");
+}
 
 export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   await assertDemoAccess();

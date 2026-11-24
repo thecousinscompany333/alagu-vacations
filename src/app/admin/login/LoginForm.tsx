@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import { signIn } from "@/actions/admin";
@@ -26,7 +27,14 @@ export function LoginForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
         <input id="email" name="email" type="email" required autoComplete="username" className={adminInput} />
       </div>
       <div>
-        <label htmlFor="password" className={adminLabel}>Password</label>
+        <div className="mb-1 flex items-end justify-between gap-2">
+          <label htmlFor="password" className={adminLabel}>
+            Password
+          </label>
+          <Link href="/admin/forgot-password" className="mb-1 text-xs font-medium text-navy-700 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
         <input id="password" name="password" type="password" required autoComplete="current-password" className={adminInput} />
       </div>
       {state && !state.ok && <p role="alert" className="text-sm text-red-700">{state.message}</p>}

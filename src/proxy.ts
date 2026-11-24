@@ -68,9 +68,13 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims?.sub);
-  const isLogin = pathname === "/admin/login";
+  const isPublicAdmin =
+    pathname === "/admin/login" ||
+    pathname === "/admin/forgot-password" ||
+    pathname === "/admin/reset-password" ||
+    pathname.startsWith("/admin/auth/");
 
-  if (!signedIn && !isLogin) {
+  if (!signedIn && !isPublicAdmin) {
     const login = request.nextUrl.clone();
     login.pathname = "/admin/login";
     login.search = "";

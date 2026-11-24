@@ -77,6 +77,7 @@ A premium, mobile-first website for **Alagu Vacations** (Dindigul, Tamil Nadu). 
 | Packages | Add, edit or hide packages: destination, duration, highlights, optional price, photo. Destinations appear automatically in "Popular Destinations". |
 | Gallery | Upload, caption, hide or delete photos |
 | Business details | Phone, WhatsApp, email, address, Instagram, map location, about text, "since" line |
+| Forgot password | `/admin/forgot-password` sends a Supabase recovery email (Turnstile + admin-only when service role is configured); link lands on `/admin/reset-password` |
 
 Content changes appear on the public site immediately (cache tag invalidation).
 
@@ -103,6 +104,7 @@ src/
   app/
     (site)/            public pages: page.tsx (home), book/, privacy/, terms/, layout (nav/footer)
     admin/login/       admin sign-in
+    admin/forgot-password/, admin/reset-password/, admin/auth/callback  password recovery
     admin/(dash)/      enquiries, enquiries/[id], vehicles, packages, gallery, settings
     layout.tsx, globals.css, not-found.tsx, sitemap.ts, robots.ts
   actions/             Server Actions: enquiry.ts (public), admin.ts (admin, every action re-checks admin)
@@ -195,7 +197,7 @@ Other commands:
 3. **Harden Auth** (Supabase dashboard → Authentication):
    - **Disable sign-ups** (Sign In / Providers → "Allow new users to sign up" off).
    - Set **Site URL** to your domain.
-   - Add `https://<domain>/**` to redirect URLs.
+   - Add `https://<domain>/**` and `https://<domain>/admin/auth/callback` to **Redirect URLs** (required for admin forgot-password emails).
 4. **Create the owner's admin account** from your machine:
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… node scripts/create-admin.mjs owner@… '<password>'

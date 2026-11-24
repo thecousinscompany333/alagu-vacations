@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Suspense } from "react";
 import { turnstileSiteKey } from "@/lib/turnstile-public";
+import { LoginAlert } from "./LoginAlert";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Admin sign in", robots: { index: false, follow: false } };
@@ -16,6 +18,9 @@ export default function LoginPage() {
           <h1 className="mt-4 font-display text-2xl font-semibold text-navy-900">Admin dashboard</h1>
           <p className="mt-1 text-sm text-muted">Sign in to manage bookings and website content.</p>
         </div>
+        <Suspense fallback={null}>
+          <LoginAlert />
+        </Suspense>
         <LoginForm turnstileSiteKey={turnstileSiteKey()} />
       </div>
     </main>
