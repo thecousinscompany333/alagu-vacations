@@ -75,17 +75,3 @@ export async function createAdminUser(_prev: ActionResult, formData: FormData): 
   return { ok: true, message: `Admin added: ${email}. They can sign in at /admin/login or use forgot password.` };
 }
 
-export async function removeAdminUser(formData: FormData) {
-  const { user: actor } = await requireSuperAdmin();
-  const service = createServiceClient();
-  if (!service) return;
-
-  const userId = z.string().uuid().parse(formData.get("user_id"));
-  const { count } = await service.from("admin_users").select("user_id", { count: "exact", head: true });
-  if ((count ?? 0) <= 1) return;
-
-  if (userId === actor.id) return;
-
-  await service.from("admin_users").delete().eq("user_id", userId);
-  revalidatePath("/admin/users");
-}

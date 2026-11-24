@@ -1,6 +1,4 @@
 import { Suspense } from "react";
-import { removeAdminUser } from "@/actions/admin-users";
-import { ConfirmSubmit } from "@/components/admin/forms";
 import { Card, LoadingBlock, PageTitle } from "@/components/admin/ui";
 import { requireSuperAdmin } from "@/lib/auth";
 import { fetchAdminDirectory } from "@/lib/admin-users";
@@ -46,7 +44,6 @@ async function UsersContent() {
   }
 
   const { admins } = directory;
-  const canRemove = admins.length > 1;
 
   return (
     <div className="space-y-6">
@@ -59,7 +56,6 @@ async function UsersContent() {
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
                 <th className="pb-2 pr-4 font-medium">Added</th>
-                <th className="pb-2 font-medium"> </th>
               </tr>
             </thead>
             <tbody>
@@ -74,19 +70,6 @@ async function UsersContent() {
                   <td className="py-3 pr-4 capitalize text-slate-700">{a.role === "super_admin" ? "Super admin" : "Admin"}</td>
                   <td className="py-3 pr-4 text-slate-600">
                     {new Date(a.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}
-                  </td>
-                  <td className="py-3 text-right">
-                    {canRemove && a.userId !== user.id ? (
-                      <form action={removeAdminUser}>
-                        <input type="hidden" name="user_id" value={a.userId} />
-                        <ConfirmSubmit
-                          message="Remove admin access?"
-                          className="text-xs font-medium text-red-700 hover:underline"
-                        >
-                          Remove
-                        </ConfirmSubmit>
-                      </form>
-                    ) : null}
                   </td>
                 </tr>
               ))}
