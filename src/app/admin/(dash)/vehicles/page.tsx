@@ -17,7 +17,8 @@ export default function VehiclesAdminPage() {
 }
 
 async function VehiclesList() {
-  const { supabase } = await requireAdmin();
+  const { supabase, role } = await requireAdmin();
+  const canDelete = role === "super_admin";
   const { data } = await supabase.from("vehicles").select("*").order("sort_order").order("created_at");
   const vehicles = (data ?? []) as Vehicle[];
   return (
@@ -37,12 +38,14 @@ async function VehiclesList() {
             </summary>
             <div className="mt-5 border-t border-slate-100 pt-5">
               <VehicleForm vehicle={v} />
-              <form action={deleteVehicle} className="mt-4 border-t border-slate-100 pt-4">
-                <input type="hidden" name="id" value={v.id} />
-                <ConfirmSubmit message="Delete this vehicle?" className="inline-flex items-center gap-1.5 text-sm text-red-700 hover:underline">
-                  <Trash2 className="h-4 w-4" aria-hidden /> Delete vehicle
-                </ConfirmSubmit>
-              </form>
+              {canDelete ? (
+                <form action={deleteVehicle} className="mt-4 border-t border-slate-100 pt-4">
+                  <input type="hidden" name="id" value={v.id} />
+                  <ConfirmSubmit message="Delete this vehicle?" className="inline-flex items-center gap-1.5 text-sm text-red-700 hover:underline">
+                    <Trash2 className="h-4 w-4" aria-hidden /> Delete vehicle
+                  </ConfirmSubmit>
+                </form>
+              ) : null}
             </div>
           </details>
         </Card>

@@ -9,13 +9,13 @@ import { getAdmin } from "@/lib/auth";
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
 const NAV = [
-  { href: "/admin", label: "Enquiries", icon: Inbox },
-  { href: "/admin/vehicles", label: "Vehicles", icon: Bus },
-  { href: "/admin/packages", label: "Packages", icon: Package },
-  { href: "/admin/gallery", label: "Gallery", icon: ImageIcon },
-  { href: "/admin/settings", label: "Business details", icon: Settings },
-  { href: "/admin/users", label: "Admin users", icon: UserCog },
-];
+  { href: "/admin", label: "Enquiries", icon: Inbox, superOnly: false },
+  { href: "/admin/vehicles", label: "Vehicles", icon: Bus, superOnly: false },
+  { href: "/admin/packages", label: "Packages", icon: Package, superOnly: false },
+  { href: "/admin/gallery", label: "Gallery", icon: ImageIcon, superOnly: false },
+  { href: "/admin/settings", label: "Business details", icon: Settings, superOnly: true },
+  { href: "/admin/users", label: "Admin users", icon: UserCog, superOnly: true },
+] as const;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,16 +30,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-xs text-white/50">Admin</p>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:pb-0" aria-label="Admin">
-          {NAV.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 hover:text-white">
-              <Icon className="h-4 w-4" aria-hidden /> {label}
-            </Link>
-          ))}
-          <Link href="/" target="_blank" className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-white/60 hover:bg-white/10 hover:text-white">
-            <ExternalLink className="h-4 w-4" aria-hidden /> View website
-          </Link>
-        </nav>
+        <Suspense fallback={<nav className="h-10 animate-pulse rounded-lg bg-white/5 mx-3" aria-hidden />}>
+          <AdminNav />
+        </Suspense>
         <div className="hidden px-5 py-4 lg:absolute lg:bottom-0 lg:block lg:w-64">
           <Suspense fallback={null}><SignedInAs /></Suspense>
           <form action={signOut} className="mt-2">
@@ -58,6 +51,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
       </div>
     </div>
+  );
+}
+
+async function AdminNav() {
+  const admin = await getAdmin();
+  const nav = NAV.filter((item) => !item.superOnly || admin?.role === "super_admin");
+  return (
+    <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:pb-0" aria-label="Admin">
+      {nav.map(({ href, label, icon: Icon }) => (
+        <Link key={href} href={href} className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-white/80 hover:bg-white/10 hover:text-white">
+          <Icon className="h-4 w-4" aria-hidden /> {label}
+        </Link>
+      ))}
+      <Link href="/" target="_blank" className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-white/60 hover:bg-white/10 hover:text-white">
+        <ExternalLink className="h-4 w-4" aria-hidden /> View website
+      </Link>
+    </nav>
   );
 }
 

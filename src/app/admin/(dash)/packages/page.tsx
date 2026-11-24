@@ -20,7 +20,8 @@ export default function PackagesAdminPage() {
 }
 
 async function PackagesList() {
-  const { supabase } = await requireAdmin();
+  const { supabase, role } = await requireAdmin();
+  const canDelete = role === "super_admin";
   const { data } = await supabase.from("packages").select("*").order("sort_order").order("created_at");
   const packages = (data ?? []) as TravelPackage[];
   return (
@@ -44,12 +45,14 @@ async function PackagesList() {
             </summary>
             <div className="mt-5 border-t border-slate-100 pt-5">
               <PackageForm pkg={p} />
-              <form action={deletePackage} className="mt-4 border-t border-slate-100 pt-4">
-                <input type="hidden" name="id" value={p.id} />
-                <ConfirmSubmit message="Delete this package?" className="inline-flex items-center gap-1.5 text-sm text-red-700 hover:underline">
-                  <Trash2 className="h-4 w-4" aria-hidden /> Delete package
-                </ConfirmSubmit>
-              </form>
+              {canDelete ? (
+                <form action={deletePackage} className="mt-4 border-t border-slate-100 pt-4">
+                  <input type="hidden" name="id" value={p.id} />
+                  <ConfirmSubmit message="Delete this package?" className="inline-flex items-center gap-1.5 text-sm text-red-700 hover:underline">
+                    <Trash2 className="h-4 w-4" aria-hidden /> Delete package
+                  </ConfirmSubmit>
+                </form>
+              ) : null}
             </div>
           </details>
         </Card>

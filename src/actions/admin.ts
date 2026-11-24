@@ -4,7 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertCaptcha } from "@/lib/captcha";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { assertDemoAccess } from "@/lib/demo-server";
 import { createSessionClient } from "@/lib/supabase/server";
 import { isRegisteredAdminEmail } from "@/lib/supabase/service";
@@ -231,7 +231,7 @@ export async function saveVehicle(_prev: ActionResult, formData: FormData): Prom
 }
 
 export async function deleteVehicle(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSuperAdmin();
   const id = z.string().uuid().parse(formData.get("id"));
   const { data } = await supabase.from("vehicles").select("image_url, photos").eq("id", id).maybeSingle();
   await supabase.from("vehicles").delete().eq("id", id);
@@ -276,7 +276,7 @@ export async function savePackage(_prev: ActionResult, formData: FormData): Prom
 }
 
 export async function deletePackage(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSuperAdmin();
   const id = z.string().uuid().parse(formData.get("id"));
   const { data } = await supabase.from("packages").select("image_url").eq("id", id).maybeSingle();
   await supabase.from("packages").delete().eq("id", id);
@@ -318,7 +318,7 @@ export async function toggleGalleryItem(formData: FormData) {
 }
 
 export async function deleteGalleryItem(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSuperAdmin();
   const id = z.string().uuid().parse(formData.get("id"));
   const { data } = await supabase.from("gallery_items").select("storage_path").eq("id", id).maybeSingle();
   if (data?.storage_path) await supabase.storage.from("media").remove([data.storage_path]);
@@ -337,7 +337,7 @@ const phone = z
   .transform((v) => v || null);
 
 export async function saveSettings(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSuperAdmin();
   const text = (max: number) => z.string().trim().max(max).optional().transform((v) => v || null);
   const parsed = z
     .object({

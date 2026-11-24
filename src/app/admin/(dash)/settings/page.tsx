@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { saveSettings } from "@/actions/admin";
 import { ActionForm, SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { Card, LoadingBlock, PageTitle } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { FALLBACK_SETTINGS } from "@/lib/fallback";
 import type { SiteSettings } from "@/lib/types";
 
@@ -16,7 +16,7 @@ export default function SettingsPage() {
 }
 
 async function SettingsForm() {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireSuperAdmin();
   const { data } = await supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
   const s: SiteSettings = { ...FALLBACK_SETTINGS, ...(data ?? {}) };
   const field = (name: keyof SiteSettings, label: string, opts: { type?: string; placeholder?: string; hint?: string } = {}) => (

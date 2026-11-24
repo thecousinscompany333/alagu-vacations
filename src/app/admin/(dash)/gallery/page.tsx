@@ -25,7 +25,8 @@ export default function GalleryAdminPage() {
 }
 
 async function GalleryGrid() {
-  const { supabase } = await requireAdmin();
+  const { supabase, role } = await requireAdmin();
+  const canDelete = role === "super_admin";
   const { data } = await supabase.from("gallery_items").select("*").order("sort_order").order("created_at", { ascending: false });
   const items = (data ?? []) as GalleryItem[];
   if (items.length === 0) return <Card className="text-sm text-slate-600">No photos yet.</Card>;
@@ -46,12 +47,14 @@ async function GalleryGrid() {
                   {g.is_active ? <><EyeOff className="h-3.5 w-3.5" aria-hidden /> Hide</> : <><Eye className="h-3.5 w-3.5" aria-hidden /> Show</>}
                 </button>
               </form>
-              <form action={deleteGalleryItem}>
-                <input type="hidden" name="id" value={g.id} />
-                <ConfirmSubmit message="Delete?" className="inline-flex items-center gap-1 text-xs text-red-700 hover:underline">
-                  <Trash2 className="h-3.5 w-3.5" aria-hidden /> Delete
-                </ConfirmSubmit>
-              </form>
+              {canDelete ? (
+                <form action={deleteGalleryItem}>
+                  <input type="hidden" name="id" value={g.id} />
+                  <ConfirmSubmit message="Delete?" className="inline-flex items-center gap-1 text-xs text-red-700 hover:underline">
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden /> Delete
+                  </ConfirmSubmit>
+                </form>
+              ) : null}
             </div>
           </div>
         </li>

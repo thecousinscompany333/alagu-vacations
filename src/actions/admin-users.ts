@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/actions/admin";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const newAdminSchema = z
@@ -18,7 +18,7 @@ const newAdminSchema = z
   });
 
 export async function createAdminUser(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { user: actor } = await requireAdmin();
+  const { user: actor } = await requireSuperAdmin();
 
   const service = createServiceClient();
   if (!service) {
@@ -61,7 +61,8 @@ export async function createAdminUser(_prev: ActionResult, formData: FormData): 
   }
 
   const { data: priorAdmin } = await service.from("admin_users").select("user_id").eq("user_id", userId).maybeSingle();
-  const { error: roleErr } = await service.from("admin_users").upsert({ user_id: userId, role: "admin" });
+  const role = formData.get("role") === "super_admin" ? "super_admin" : "admin";
+  const { error: roleErr } = await service.from("admin_users").upsert({ user_id: userId, role });
   if (roleErr) return { ok: false, message: "Could not grant admin access." };
 
   revalidatePath("/admin/users");
@@ -75,7 +76,7 @@ export async function createAdminUser(_prev: ActionResult, formData: FormData): 
 }
 
 export async function removeAdminUser(formData: FormData) {
-  const { user: actor } = await requireAdmin();
+  const { user: actor } = await requireSuperAdmin();
   const service = createServiceClient();
   if (!service) return;
 

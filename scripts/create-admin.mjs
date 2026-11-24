@@ -9,7 +9,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 
-const [email, password] = process.argv.slice(2);
+const [email, password, roleArg] = process.argv.slice(2);
+const role = roleArg === "admin" ? "admin" : "super_admin";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -48,6 +49,6 @@ if (error) {
   console.log("User created.");
 }
 
-const { error: roleErr } = await admin.from("admin_users").upsert({ user_id: userId, role: "admin" });
+const { error: roleErr } = await admin.from("admin_users").upsert({ user_id: userId, role });
 if (roleErr) throw roleErr;
 console.log(`Admin access granted to ${email}.`);

@@ -20,6 +20,15 @@ export function AddAdminForm() {
         <p className="mt-1 text-xs text-slate-500">At least 10 characters. They can change it via Forgot password.</p>
       </div>
       <div>
+        <label className={adminLabel} htmlFor="admin-role">
+          Role
+        </label>
+        <select id="admin-role" name="role" defaultValue="admin" className={adminInput}>
+          <option value="admin">Admin (enquiries + add content)</option>
+          <option value="super_admin">Super admin (full access)</option>
+        </select>
+      </div>
+      <div>
         <label className={adminLabel} htmlFor="admin-password-confirm">
           Confirm password
         </label>

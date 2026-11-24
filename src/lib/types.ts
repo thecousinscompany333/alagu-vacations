@@ -48,6 +48,9 @@ export type GalleryItem = {
   is_active: boolean;
 };
 
+export const ADMIN_ROLES = ["admin", "super_admin"] as const;
+export type AdminRole = (typeof ADMIN_ROLES)[number];
+
 export const ENQUIRY_STATUSES = ["pending", "contacted", "confirmed", "cancelled"] as const;
 export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number];
 

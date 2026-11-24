@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { removeAdminUser } from "@/actions/admin-users";
 import { ConfirmSubmit } from "@/components/admin/forms";
 import { Card, LoadingBlock, PageTitle } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { fetchAdminDirectory } from "@/lib/admin-users";
 import { AddAdminForm } from "./AddAdminForm";
 
@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
 }
 
 async function UsersContent() {
-  const { user } = await requireAdmin();
+  const { user } = await requireSuperAdmin();
   const directory = await fetchAdminDirectory();
 
   if (!directory.ok && directory.reason === "missing_service_role") {
@@ -57,6 +57,7 @@ async function UsersContent() {
             <thead>
               <tr className="border-b border-slate-200 text-slate-600">
                 <th className="pb-2 pr-4 font-medium">Email</th>
+                <th className="pb-2 pr-4 font-medium">Role</th>
                 <th className="pb-2 pr-4 font-medium">Added</th>
                 <th className="pb-2 font-medium"> </th>
               </tr>
@@ -70,6 +71,7 @@ async function UsersContent() {
                       <span className="ml-2 text-xs text-slate-500">(you)</span>
                     ) : null}
                   </td>
+                  <td className="py-3 pr-4 capitalize text-slate-700">{a.role === "super_admin" ? "Super admin" : "Admin"}</td>
                   <td className="py-3 pr-4 text-slate-600">
                     {new Date(a.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}
                   </td>
