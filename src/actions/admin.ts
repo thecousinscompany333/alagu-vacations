@@ -48,6 +48,13 @@ export async function requestPasswordReset(_prev: ActionResult, formData: FormDa
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) {
     console.error("[auth] resetPasswordForEmail:", error.message);
+    if (error.status === 429 || error.code === "over_email_send_rate_limit") {
+      return {
+        ok: false,
+        message:
+          "Too many reset emails were sent recently (Supabase limit). Wait about an hour, check spam, or configure custom SMTP in Supabase → Authentication → SMTP.",
+      };
+    }
     return { ok: true, message: RESET_EMAIL_SENT };
   }
   return { ok: true, message: RESET_EMAIL_SENT };
