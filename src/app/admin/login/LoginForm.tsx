@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { signIn } from "@/actions/admin";
 import { PasswordField, SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { TurnstileField } from "@/components/site/TurnstileField";
@@ -13,12 +13,15 @@ export function LoginForm({ turnstileSiteKey }: { turnstileSiteKey: string }) {
   const [captchaKey, setCaptchaKey] = useState(0);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
-  useEffect(() => {
+  // Reset the CAPTCHA after each failed submit (adjusting state during render, not in an effect).
+  const [seenState, setSeenState] = useState(state);
+  if (state !== seenState) {
+    setSeenState(state);
     if (state && !state.ok) {
       setCaptchaKey((k) => k + 1);
       setCaptchaReady(!hasTurnstile);
     }
-  }, [state, hasTurnstile]);
+  }
 
   return (
     <form action={action} className="mt-8 space-y-4">

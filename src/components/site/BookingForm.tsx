@@ -47,11 +47,17 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
     if (state.status === "success" || state.status === "error") {
       document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  }, [state]);
+
+  // Reset the CAPTCHA after each failed submit (adjusting state during render, not in an effect).
+  const [seenState, setSeenState] = useState(state);
+  if (state !== seenState) {
+    setSeenState(state);
     if (state.status === "error") {
       setCaptchaKey((k) => k + 1);
       setCaptchaReady(!hasTurnstile);
     }
-  }, [state, hasTurnstile]);
+  }
 
   if (state.status === "success") {
     const e = state.enquiry;
