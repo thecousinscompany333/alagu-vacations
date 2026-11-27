@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { requestPasswordReset } from "@/actions/admin";
 import { SubmitButton, adminInput, adminLabel } from "@/components/admin/forms";
 import { TurnstileField } from "@/components/site/TurnstileField";
@@ -12,12 +12,15 @@ export function ForgotPasswordForm({ turnstileSiteKey }: { turnstileSiteKey: str
   const [captchaKey, setCaptchaKey] = useState(0);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
-  useEffect(() => {
+  // Reset the CAPTCHA after each failed submit (adjusting state during render, not in an effect).
+  const [seenState, setSeenState] = useState(state);
+  if (state !== seenState) {
+    setSeenState(state);
     if (state && !state.ok) {
       setCaptchaKey((k) => k + 1);
       setCaptchaReady(!hasTurnstile);
     }
-  }, [state, hasTurnstile]);
+  }
 
   if (state?.ok) {
     return (

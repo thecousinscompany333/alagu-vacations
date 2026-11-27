@@ -1,7 +1,7 @@
 "use client";
 
 import { Lock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { TurnstileField } from "@/components/site/TurnstileField";
 
 export function DemoGateForm({
@@ -19,12 +19,15 @@ export function DemoGateForm({
   const hasTurnstile = Boolean(turnstileSiteKey);
   const [captchaReady, setCaptchaReady] = useState(!hasTurnstile);
 
-  useEffect(() => {
+  // Reset the CAPTCHA when a new error comes back (adjusting state during render, not in an effect).
+  const [seenError, setSeenError] = useState(error);
+  if (error !== seenError) {
+    setSeenError(error);
     if (error) {
       setCaptchaKey((k) => k + 1);
       setCaptchaReady(!hasTurnstile);
     }
-  }, [error, hasTurnstile]);
+  }
 
   return (
     <form action="/api/demo-access" method="post" className="mt-8 space-y-4">

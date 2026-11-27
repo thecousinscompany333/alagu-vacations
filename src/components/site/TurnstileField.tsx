@@ -1,7 +1,9 @@
 "use client";
 
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
+
+const subscribeNoop = () => () => {};
 
 type Props = {
   /** Site key from the server (preferred — works when env is set on Render without a client rebuild). */
@@ -36,11 +38,16 @@ export function TurnstileField({
   onExpire,
 }: Props) {
   const ref = useRef<TurnstileInstance>(null);
-  const [mounted, setMounted] = useState(false);
+  // false during SSR and hydration, true once running in the browser.
+  const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const siteKey = siteKeyProp ?? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-  useEffect(() => setMounted(true), []);
-  useEffect(() => setLoadError(null), [resetKey]);
+  // Clear any load error when the widget is reset (adjusting state during render, not in an effect).
+  const [seenResetKey, setSeenResetKey] = useState(resetKey);
+  if (resetKey !== seenResetKey) {
+    setSeenResetKey(resetKey);
+    setLoadError(null);
+  }
 
   if (!siteKey) {
     if (process.env.NODE_ENV === "production") {
