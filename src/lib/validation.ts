@@ -47,7 +47,8 @@ export const enquirySchema = z
       .int("Whole numbers only")
       .min(1, "At least 1 passenger")
       .max(80, "For more than 80 passengers, please call us"),
-    vehicle_preference: optionalText(120),
+    /** Id of the vehicle picked in the form (empty = no preference). */
+    vehicle_id: optionalText(64),
     trip_type: optionalText(80),
     notes: optionalText(1500),
   })
@@ -59,6 +60,8 @@ export const enquirySchema = z
       ctx.addIssue({ code: "custom", path: ["return_date"], message: "Return date must be on or after the start date" });
     }
   });
+
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type EnquiryInput = z.infer<typeof enquirySchema>;
 export type FieldErrors = Partial<Record<keyof EnquiryInput, string>>;

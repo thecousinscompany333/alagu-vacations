@@ -24,6 +24,20 @@ export type Vehicle = {
   photos: string[];
   sort_order: number;
   is_active: boolean;
+  /** Owner of the vehicle. null = Alagu Vacations' own vehicle. */
+  partner_id?: string | null;
+};
+
+/** A third-party vehicle owner who receives leads for their vehicles. */
+export type Partner = {
+  id: string;
+  business_name: string;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
 };
 
 export type TravelPackage = {
@@ -70,6 +84,12 @@ export type Enquiry = {
   notes: string | null;
   status: EnquiryStatus;
   admin_notes: string | null;
+  /** Vehicle picked by the customer, and its owner at submit time (null = own vehicle / no preference). */
+  vehicle_id: string | null;
+  partner_id: string | null;
+  /** When an admin released the customer's contact details to the partner. */
+  shared_at: string | null;
+  partner_notes: string | null;
   created_at: string;
   updated_at: string;
 };

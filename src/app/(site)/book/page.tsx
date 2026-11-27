@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Suspense } from "react";
 import { CircleCheck, Clock, Phone, ShieldCheck } from "lucide-react";
-import { BookingForm } from "@/components/site/BookingForm";
+import { BookingForm, type VehicleOption } from "@/components/site/BookingForm";
 import { WhatsAppIcon } from "@/components/icons";
 import { getSettings, getVehicles } from "@/lib/data";
 import { formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 };
 
-const PREFILL_KEYS = ["pickup_location", "destination", "pickup_date", "return_date", "passengers", "trip_type", "vehicle_preference"];
+const PREFILL_KEYS = ["pickup_location", "destination", "pickup_date", "return_date", "passengers", "trip_type", "vehicle_id"];
 
 export default async function BookPage(props: PageProps<"/book">) {
   const [settings, vehicles] = await Promise.all([getSettings(), getVehicles()]);
@@ -45,7 +45,7 @@ export default async function BookPage(props: PageProps<"/book">) {
           <Suspense fallback={<FormSkeleton />}>
             <PrefilledForm
               searchParams={props.searchParams}
-              vehicleOptions={vehicles.map((v) => v.name)}
+              vehicleOptions={vehicles.map((v) => ({ id: v.id, name: v.name }))}
               phone={settings.phone}
               whatsapp={settings.whatsapp}
             />
@@ -94,7 +94,7 @@ async function PrefilledForm({
   ...rest
 }: {
   searchParams: PageProps<"/book">["searchParams"];
-  vehicleOptions: string[];
+  vehicleOptions: VehicleOption[];
   phone: string | null;
   whatsapp: string | null;
 }) {
@@ -103,6 +103,12 @@ async function PrefilledForm({
   for (const k of PREFILL_KEYS) {
     const v = sp[k];
     if (typeof v === "string") prefill[k] = v.slice(0, 160);
+  }
+  // Older links pass the vehicle by name (?vehicle_preference=Force%20Urbania).
+  const legacyName = typeof sp.vehicle_preference === "string" ? sp.vehicle_preference.trim().toLowerCase() : "";
+  if (!prefill.vehicle_id && legacyName) {
+    const match = rest.vehicleOptions.find((o) => o.name.toLowerCase() === legacyName);
+    if (match) prefill.vehicle_id = match.id;
   }
   return (
     <BookingForm
