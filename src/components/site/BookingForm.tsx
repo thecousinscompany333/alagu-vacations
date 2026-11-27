@@ -9,6 +9,7 @@ import { TRIP_TYPES } from "@/lib/types";
 import { buildEnquiryMessage, formatDate, formatPhone, phoneDigits, whatsappLink } from "@/lib/site";
 import { todayInIndia } from "@/lib/validation";
 import { TurnstileField } from "@/components/site/TurnstileField";
+import { LocationInput } from "@/components/site/LocationInput";
 import { useClientValue } from "@/lib/use-client-value";
 
 export type VehicleOption = { id: string; name: string };
@@ -207,7 +208,9 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
           </div>
           <div>
             <label htmlFor="mobile" className={lbl}>Mobile number <span className="text-red-600">*</span></label>
-            <input id="mobile" name="mobile" type="tel" required inputMode="tel" autoComplete="tel" placeholder="10-digit mobile"
+            <input id="mobile" name="mobile" type="tel" required inputMode="numeric" autoComplete="tel-national" placeholder="10-digit mobile"
+              pattern="[6-9][0-9]{9}" title="10-digit mobile number, numbers only"
+              onInput={(ev) => { ev.currentTarget.value = mobileDigits(ev.currentTarget.value); }}
               defaultValue={values.mobile ?? ""} className={`${input} ${errors.mobile ? bad : ok}`} {...aria("mobile")} />
             {fieldError("mobile")}
           </div>
@@ -225,13 +228,13 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="pickup_location" className={lbl}><MapPin className="mr-1 inline h-4 w-4 text-gold-600" aria-hidden />Pickup location <span className="text-red-600">*</span></label>
-            <input id="pickup_location" name="pickup_location" required placeholder="Area / town" defaultValue={values.pickup_location ?? ""}
+            <LocationInput id="pickup_location" name="pickup_location" required placeholder="Area / town" defaultValue={values.pickup_location ?? ""}
               className={`${input} ${errors.pickup_location ? bad : ok}`} {...aria("pickup_location")} />
             {fieldError("pickup_location")}
           </div>
           <div>
             <label htmlFor="destination" className={lbl}><Navigation className="mr-1 inline h-4 w-4 text-gold-600" aria-hidden />Destination <span className="text-red-600">*</span></label>
-            <input id="destination" name="destination" required placeholder="Where would you like to go?" defaultValue={values.destination ?? ""}
+            <LocationInput id="destination" name="destination" required placeholder="Where would you like to go?" defaultValue={values.destination ?? ""}
               className={`${input} ${errors.destination ? bad : ok}`} {...aria("destination")} />
             {fieldError("destination")}
           </div>
@@ -326,4 +329,10 @@ function Detail({ k, v }: { k: string; v: string }) {
       <dd className="font-medium text-ink">{v}</dd>
     </div>
   );
+}
+
+/** Keeps the mobile field to digits only, at most 10. A pasted or autofilled "+91 98765 43210" becomes "9876543210". */
+function mobileDigits(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  return (digits.length > 10 ? digits.replace(/^(91|0)(?=\d{10}$)/, "") : digits).slice(0, 10);
 }

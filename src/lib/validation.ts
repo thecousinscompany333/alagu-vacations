@@ -8,11 +8,6 @@ const optionalText = (max: number) =>
     .optional()
     .transform((v) => (v ? v : undefined));
 
-/** Normalises "+91 98765 43210" / "098765-43210" to "9876543210". */
-export function normaliseMobile(input: string): string {
-  return input.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
-}
-
 export function todayInIndia(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 }
@@ -23,10 +18,13 @@ export const STATIC_DATE_MIN = "2020-01-01";
 export const enquirySchema = z
   .object({
     full_name: z.string().trim().min(2, "Please enter your full name").max(100),
+    // Digits only, exactly 10, starting 6-9. No letters, spaces, +91 or extra digits.
     mobile: z
       .string()
-      .transform(normaliseMobile)
-      .pipe(z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number")),
+      .trim()
+      .regex(/^\d+$/, "Use numbers only")
+      .regex(/^\d{10}$/, "Enter exactly 10 digits")
+      .regex(/^[6-9]/, "Enter a valid Indian mobile number (starts with 6, 7, 8 or 9)"),
     email: z
       .string()
       .trim()
