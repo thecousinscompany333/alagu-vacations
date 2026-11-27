@@ -11,11 +11,9 @@ import { todayInIndia } from "@/lib/validation";
 import { TurnstileField } from "@/components/site/TurnstileField";
 import { useClientValue } from "@/lib/use-client-value";
 
-export type VehicleOption = { id: string; name: string };
-
 type Props = {
   prefill: Record<string, string>;
-  vehicleOptions: VehicleOption[];
+  vehicleOptions: string[];
   phone: string | null;
   whatsapp: string | null;
   /** Earliest selectable pickup/return date (Asia/Kolkata), from the server render. */
@@ -61,13 +59,11 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
     }
   }
 
-  const vehicleName = (id?: string) => vehicleOptions.find((v) => v.id === id)?.name;
-
   if (state.status === "success") {
     const e = state.enquiry;
     const wa = whatsappLink(
       whatsapp,
-      buildEnquiryMessage({ reference: state.reference, ...e, passengers: e.passengers, vehicle_preference: vehicleName(e.vehicle_id) }),
+      buildEnquiryMessage({ reference: state.reference, ...e, passengers: e.passengers }),
     );
     return (
       <div className="rounded-[1.75rem] bg-white p-6 text-center shadow-lift ring-1 ring-navy-100 sm:p-10" role="status">
@@ -161,7 +157,7 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
       buildEnquiryMessage({
         full_name: get("full_name"), mobile: get("mobile"), pickup_location: get("pickup_location"),
         destination: get("destination"), pickup_date: get("pickup_date"), return_date: get("return_date"),
-        passengers: get("passengers"), vehicle_preference: vehicleName(get("vehicle_id")), trip_type: get("trip_type"),
+        passengers: get("passengers"), vehicle_preference: get("vehicle_preference"), trip_type: get("trip_type"),
         notes: get("notes"),
       }),
     );
@@ -254,10 +250,10 @@ export function BookingForm({ prefill, vehicleOptions, phone, whatsapp, minDate,
             {fieldError("passengers")}
           </div>
           <div>
-            <label htmlFor="vehicle_id" className={lbl}>Vehicle preference</label>
-            <select id="vehicle_id" name="vehicle_id" defaultValue={values.vehicle_id ?? ""} className={`${input} ${ok}`}>
+            <label htmlFor="vehicle_preference" className={lbl}>Vehicle preference</label>
+            <select id="vehicle_preference" name="vehicle_preference" defaultValue={values.vehicle_preference ?? ""} className={`${input} ${ok}`}>
               <option value="">No preference</option>
-              {vehicleOptions.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+              {vehicleOptions.map((v) => <option key={v}>{v}</option>)}
             </select>
           </div>
           <div className="sm:col-span-2">

@@ -74,7 +74,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 
         <div className="pt-8">
           <Link
-            href={`/book?vehicle_id=${encodeURIComponent(vehicle.id)}#booking-form`}
+            href={`/book?vehicle_preference=${encodeURIComponent(vehicle.name)}#booking-form`}
             className="inline-flex items-center gap-2 rounded-full bg-navy-800 px-6 py-3.5 font-semibold text-white transition hover:bg-navy-700"
           >
             Enquire Now <ArrowRight className="h-4 w-4" aria-hidden />
