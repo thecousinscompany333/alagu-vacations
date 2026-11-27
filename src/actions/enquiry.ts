@@ -4,7 +4,7 @@ import { assertCaptcha } from "@/lib/captcha";
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { assertDemoAccess } from "@/lib/demo-server";
-import { enquirySchema, type EnquiryInput, type FieldErrors } from "@/lib/validation";
+import { enquirySchema, UUID_RE, type EnquiryInput, type FieldErrors } from "@/lib/validation";
 
 export type EnquiryState =
   | { status: "idle" }
@@ -13,7 +13,7 @@ export type EnquiryState =
 
 const FIELDS = [
   "full_name", "mobile", "email", "pickup_location", "destination", "pickup_date",
-  "return_date", "passengers", "vehicle_preference", "trip_type", "notes",
+  "return_date", "passengers", "vehicle_id", "trip_type", "notes",
 ] as const;
 
 export async function submitEnquiry(_prev: EnquiryState, formData: FormData): Promise<EnquiryState> {
@@ -69,7 +69,9 @@ export async function submitEnquiry(_prev: EnquiryState, formData: FormData): Pr
     p_pickup_date: e.pickup_date,
     p_return_date: e.return_date ?? null,
     p_passengers: e.passengers,
-    p_vehicle_preference: e.vehicle_preference ?? "",
+    // The database looks up the vehicle (and its owner, for partner vehicles) from this id.
+    p_vehicle_preference: "",
+    p_vehicle_id: e.vehicle_id && UUID_RE.test(e.vehicle_id) ? e.vehicle_id : null,
     p_trip_type: e.trip_type ?? "",
     p_notes: e.notes ?? "",
   });

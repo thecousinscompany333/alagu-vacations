@@ -4,7 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertCaptcha } from "@/lib/captcha";
-import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
+import { homeForSignedInUser, requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { assertDemoAccess } from "@/lib/demo-server";
 import { createSessionClient } from "@/lib/supabase/server";
 import { isRegisteredAdminEmail } from "@/lib/supabase/service";
@@ -92,13 +92,12 @@ export async function completePasswordReset(_prev: ActionResult, formData: FormD
     return { ok: false, message: "Could not update password. Request a new link and try again." };
   }
 
-  const { data: isAdmin } = await supabase.rpc("is_admin");
-  if (isAdmin !== true) {
+  const home = await homeForSignedInUser(supabase);
+  if ("error" in home) {
     await supabase.auth.signOut();
-    return { ok: false, message: "This account does not have admin access." };
+    return { ok: false, message: home.error };
   }
-
-  redirect("/admin");
+  redirect(home.path);
 }
 
 export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -114,12 +113,12 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { ok: false, message: "Incorrect email or password." };
 
-  const { data: isAdmin } = await supabase.rpc("is_admin");
-  if (isAdmin !== true) {
+  const home = await homeForSignedInUser(supabase);
+  if ("error" in home) {
     await supabase.auth.signOut();
-    return { ok: false, message: "This account does not have admin access." };
+    return { ok: false, message: home.error };
   }
-  redirect("/admin");
+  redirect(home.path);
 }
 
 export async function signOut() {
@@ -190,6 +189,41 @@ export async function quickSetStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** Release (or take back) the customer's name, mobile, email and notes for the partner. */
+export async function setEnquiryShared(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const id = z.string().uuid().parse(formData.get("id"));
+  const share = formData.get("share") === "true";
+  await supabase
+    .from("enquiries")
+    .update({ shared_at: share ? new Date().toISOString() : null })
+    .eq("id", id)
+    .not("partner_id", "is", null);
+  revalidatePath("/admin");
+  revalidatePath(`/admin/enquiries/${id}`);
+}
+
+/** Hand an enquiry to a partner by hand (e.g. "no preference"), or take it back. Contact stays hidden until released. */
+export async function assignEnquiryPartner(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireAdmin();
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  if (!id.success) return { ok: false, message: "Invalid enquiry." };
+  const raw = String(formData.get("partner_id") ?? "");
+  const partnerId = raw ? z.string().uuid().safeParse(raw).data : null;
+  if (partnerId === undefined) return { ok: false, message: "Choose a partner." };
+
+  const { data: current } = await supabase.from("enquiries").select("partner_id").eq("id", id.data).maybeSingle();
+  if (!current) return { ok: false, message: "Enquiry not found." };
+  if (current.partner_id === partnerId) return { ok: true, message: "No change." };
+
+  // A new owner never inherits a release given to someone else.
+  const { error } = await supabase.from("enquiries").update({ partner_id: partnerId, shared_at: null }).eq("id", id.data);
+  if (error) return { ok: false, message: "Could not assign the enquiry." };
+  revalidatePath("/admin");
+  revalidatePath(`/admin/enquiries/${id.data}`);
+  return { ok: true, message: partnerId ? "Enquiry assigned to the partner." : "Enquiry is now handled by Alagu Vacations." };
+}
+
 /* ------------------------------------------------------------ vehicles */
 
 const vehicleSchema = z.object({
@@ -202,7 +236,7 @@ const vehicleSchema = z.object({
 });
 
 export async function saveVehicle(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const { supabase, role } = await requireAdmin();
   const parsed = vehicleSchema.safeParse({
     name: formData.get("name"),
     model: formData.get("model") ?? undefined,
@@ -220,6 +254,10 @@ export async function saveVehicle(_prev: ActionResult, formData: FormData): Prom
     trip_types: lines(formData.get("trip_types")),
     photos: parsed.data.image_url && !photos.includes(parsed.data.image_url) ? [parsed.data.image_url, ...photos] : photos,
     is_active: formData.get("is_active") === "on",
+    // Only super admins assign owners; for everyone else the field is left unchanged.
+    ...(role === "super_admin" && formData.has("partner_id")
+      ? { partner_id: z.string().uuid().safeParse(formData.get("partner_id")).data ?? null }
+      : {}),
   };
   const id = optional(formData.get("id"));
   const { error } = id

@@ -48,7 +48,7 @@ async function UsersContent() {
   return (
     <div className="space-y-6">
       <Card>
-        <h2 className="font-display text-lg font-semibold text-navy-900">Current admins</h2>
+        <h2 className="font-display text-lg font-semibold text-navy-900">Current users</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -67,7 +67,7 @@ async function UsersContent() {
                       <span className="ml-2 text-xs text-slate-500">(you)</span>
                     ) : null}
                   </td>
-                  <td className="py-3 pr-4 capitalize text-slate-700">{a.role === "super_admin" ? "Super admin" : "Admin"}</td>
+                  <td className="py-3 pr-4 text-slate-700">{a.role === "super_admin" ? "Super admin" : a.role === "partner" ? `Partner · ${a.businessName ?? "—"}` : "Admin"}</td>
                   <td className="py-3 pr-4 text-slate-600">
                     {new Date(a.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}
                   </td>
@@ -79,8 +79,11 @@ async function UsersContent() {
       </Card>
 
       <Card>
-        <h2 className="font-display text-lg font-semibold text-navy-900">Add admin</h2>
-        <p className="mt-1 text-sm text-slate-600">Share the email and temporary password securely. Supabase sign-up stays off for the public.</p>
+        <h2 className="font-display text-lg font-semibold text-navy-900">Add user</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Share the email and temporary password securely. Supabase sign-up stays off for the public. Partners are vehicle
+          owners: they only see enquiries for vehicles you assign to them.
+        </p>
         <div className="mt-4">
           <AddAdminForm />
         </div>
