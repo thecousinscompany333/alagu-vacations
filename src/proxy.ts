@@ -19,7 +19,8 @@ function noIndex(res: NextResponse) {
  * 1. DEMO GATE (only when DEMO_MODE=true): every request except the gate needs a valid,
  *    signed, HTTP-only access cookie. Pages redirect to the password screen; API calls,
  *    Server Actions and other non-GET requests get 401.
- * 2. ADMIN: refreshes the Supabase session and redirects signed-out visitors to /admin/login.
+ * 2. ADMIN and PARTNER areas: refreshes the Supabase session and redirects signed-out visitors
+ *    to /admin/login (partners use the same sign-in page).
  *    Real authorisation is enforced in lib/auth.ts and Postgres RLS.
  */
 export async function proxy(request: NextRequest) {
@@ -43,7 +44,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (!pathname.startsWith("/admin")) {
+  const isPartnerArea = pathname === "/partner" || pathname.startsWith("/partner/");
+  if (!pathname.startsWith("/admin") && !isPartnerArea) {
     const res = NextResponse.next();
     return isDemoMode() ? noIndex(res) : res;
   }

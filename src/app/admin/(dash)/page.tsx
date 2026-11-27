@@ -7,6 +7,7 @@ import { adminInput } from "@/components/admin/forms";
 import { requireAdmin } from "@/lib/auth";
 import { formatDate, formatPhone, isPendingStale, phoneDigits, whatsappLink } from "@/lib/site";
 import { ENQUIRY_STATUSES, type Enquiry, type EnquiryStatus } from "@/lib/types";
+import { UUID_RE } from "@/lib/validation";
 
 export default function EnquiriesPage(props: PageProps<"/admin">) {
   return (
@@ -24,6 +25,12 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
   const sp = await searchParams;
   const status = typeof sp.status === "string" && (ENQUIRY_STATUSES as readonly string[]).includes(sp.status) ? (sp.status as EnquiryStatus) : null;
   const q = typeof sp.q === "string" ? sp.q.trim().slice(0, 60) : "";
+  // owner: "own" = Alagu Vacations, a partner id, or empty for all.
+  const owner = typeof sp.owner === "string" && (sp.owner === "own" || UUID_RE.test(sp.owner)) ? sp.owner : "";
+
+  const { data: partnerRows } = await supabase.from("partners").select("id, business_name").order("business_name");
+  const partners = partnerRows ?? [];
+  const ownerName = (id: string | null) => (id ? partners.find((p) => p.id === id)?.business_name ?? "Partner" : null);
 
   const counts = await Promise.all(
     ENQUIRY_STATUSES.map(async (s) => {
@@ -34,6 +41,8 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
 
   let query = supabase.from("enquiries").select("*").order("created_at", { ascending: false }).limit(200);
   if (status) query = query.eq("status", status);
+  if (owner === "own") query = query.is("partner_id", null);
+  else if (owner) query = query.eq("partner_id", owner);
   if (q) {
     const safe = q.replace(/[%,()]/g, "");
     query = query.or(`full_name.ilike.%${safe}%,mobile.ilike.%${safe}%,reference.ilike.%${safe}%,destination.ilike.%${safe}%`);
@@ -55,19 +64,38 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
 
       <form className="mt-6 flex gap-2" role="search">
         {status && <input type="hidden" name="status" value={status} />}
+        {owner && <input type="hidden" name="owner" value={owner} />}
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
           <input name="q" defaultValue={q} placeholder="Search name, mobile, reference or destination" className={`${adminInput} pl-9`} aria-label="Search enquiries" />
         </div>
         <button className="rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50">Search</button>
-        {(q || status) && <Link href="/admin" className="self-center px-2 text-sm text-slate-600 underline">Clear</Link>}
+        {(q || status || owner) && <Link href="/admin" className="self-center px-2 text-sm text-slate-600 underline">Clear</Link>}
       </form>
+
+      {partners.length > 0 && (
+        <nav className="mt-3 flex flex-wrap gap-2 text-sm" aria-label="Filter by owner">
+          {[{ id: "", label: "All owners" }, { id: "own", label: "Alagu Vacations" }, ...partners.map((p) => ({ id: p.id, label: p.business_name }))].map((o) => {
+            const params = new URLSearchParams();
+            if (status) params.set("status", status);
+            if (q) params.set("q", q);
+            if (o.id) params.set("owner", o.id);
+            const qs = params.toString();
+            return (
+              <Link key={o.id || "all"} href={qs ? `/admin?${qs}` : "/admin"}
+                className={`rounded-full border px-3 py-1 ${owner === o.id ? "border-navy-700 bg-navy-800 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}>
+                {o.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
 
       {error && <p className="mt-4 text-sm text-red-700">Could not load enquiries.</p>}
 
       {rows.length === 0 ? (
         <Card className="mt-6 text-center text-slate-600">
-          {q || status ? "No enquiries match your filters." : "No enquiries yet. New booking enquiries from the website will appear here."}
+          {q || status || owner ? "No enquiries match your filters." : "No enquiries yet. New booking enquiries from the website will appear here."}
         </Card>
       ) : (
         <>
@@ -77,7 +105,7 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
               <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Customer</th><th className="px-4 py-3">Trip</th><th className="px-4 py-3">Dates</th>
-                  <th className="px-4 py-3">Pax</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th>
+                  <th className="px-4 py-3">Pax</th><th className="px-4 py-3">Owner</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -99,6 +127,7 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
                     <td className="px-4 py-3"><p>{e.pickup_location} → {e.destination}</p><p className="text-xs text-slate-500">{e.trip_type ?? "—"}</p></td>
                     <td className="px-4 py-3 whitespace-nowrap">{formatDate(e.pickup_date)}{e.return_date ? ` – ${formatDate(e.return_date)}` : ""}</td>
                     <td className="px-4 py-3">{e.passengers}</td>
+                    <td className="px-4 py-3"><OwnerCell name={ownerName(e.partner_id)} shared={Boolean(e.shared_at)} /></td>
                     <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
                     <td className="px-4 py-3"><RowActions e={e} /></td>
                   </tr>
@@ -133,6 +162,7 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
                   </div>
                   <p className="mt-1 text-sm">{e.pickup_location} → {e.destination}</p>
                   <p className="text-xs text-slate-500">{formatDate(e.pickup_date)} · {e.passengers} pax · <span className="font-mono">{e.reference}</span></p>
+                  {e.partner_id && <p className="mt-1 text-xs"><OwnerCell name={ownerName(e.partner_id)} shared={Boolean(e.shared_at)} /></p>}
                   <div className="mt-3"><RowActions e={e} /></div>
                 </Card>
               </li>
@@ -142,6 +172,18 @@ async function EnquiryList({ searchParams }: { searchParams: PageProps<"/admin">
         </>
       )}
     </>
+  );
+}
+
+function OwnerCell({ name, shared }: { name: string | null; shared: boolean }) {
+  if (!name) return <span className="text-xs text-slate-500">Alagu Vacations</span>;
+  return (
+    <span className="text-xs">
+      <span className="font-medium text-navy-900">{name}</span>
+      <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${shared ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+        {shared ? "Shared" : "Not shared"}
+      </span>
+    </span>
   );
 }
 

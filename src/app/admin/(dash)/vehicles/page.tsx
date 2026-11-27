@@ -19,8 +19,14 @@ export default function VehiclesAdminPage() {
 async function VehiclesList() {
   const { supabase, role } = await requireAdmin();
   const canDelete = role === "super_admin";
-  const { data } = await supabase.from("vehicles").select("*").order("sort_order").order("created_at");
+  const [{ data }, { data: partnerRows }] = await Promise.all([
+    supabase.from("vehicles").select("*").order("sort_order").order("created_at"),
+    supabase.from("partners").select("id, business_name, is_active").order("business_name"),
+  ]);
   const vehicles = (data ?? []) as Vehicle[];
+  const partners = (partnerRows ?? []) as PartnerOption[];
+  const ownerName = (id?: string | null) => (id ? partners.find((p) => p.id === id)?.business_name ?? "Partner" : null);
+  const owner = canDelete ? { partners } : undefined;
   return (
     <div className="space-y-4">
       {vehicles.map((v) => (
@@ -32,12 +38,13 @@ async function VehiclesList() {
               </span>
               <span className="flex-1">
                 <span className="block font-semibold text-navy-900">{v.name}</span>
-                <span className="text-sm text-slate-500">{v.seats ? `${v.seats} seats · ` : ""}{v.is_active ? "Visible" : "Hidden"}</span>
+                <span className="text-sm text-slate-500">{v.seats ? `${v.seats} seats · ` : ""}{v.is_active ? "Visible" : "Hidden"}
+                  {ownerName(v.partner_id) ? ` · Owner: ${ownerName(v.partner_id)}` : ""}</span>
               </span>
               <span className="text-sm font-medium text-navy-700">Edit</span>
             </summary>
             <div className="mt-5 border-t border-slate-100 pt-5">
-              <VehicleForm vehicle={v} />
+              <VehicleForm vehicle={v} owner={owner} />
               {canDelete ? (
                 <form action={deleteVehicle} className="mt-4 border-t border-slate-100 pt-4">
                   <input type="hidden" name="id" value={v.id} />
@@ -52,13 +59,16 @@ async function VehiclesList() {
       ))}
       <Card>
         <h2 className="mb-4 font-semibold text-navy-900">Add a vehicle</h2>
-        <VehicleForm />
+        <VehicleForm owner={owner} />
       </Card>
     </div>
   );
 }
 
-function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
+type PartnerOption = { id: string; business_name: string; is_active: boolean };
+
+/** `owner` is passed only for super admins: only they assign vehicles to partners. */
+function VehicleForm({ vehicle, owner }: { vehicle?: Vehicle; owner?: { partners: PartnerOption[] } }) {
   return (
     <ActionForm key={vehicle ? JSON.stringify(vehicle) : "new"} action={saveVehicle} className="grid gap-4 sm:grid-cols-2" resetOnSuccess={!vehicle}>
       {vehicle && <input type="hidden" name="id" value={vehicle.id} />}
@@ -71,6 +81,19 @@ function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       <div><label className={adminLabel}>Suitable trip types (one per line)<textarea name="trip_types" rows={5} defaultValue={vehicle?.trip_types.join("\n")} className={adminInput} /></label></div>
       <div className="sm:col-span-2"><ImageUploader folder="vehicles" defaultUrl={vehicle?.image_url ?? ""} label="Main photo" /></div>
       <div className="sm:col-span-2"><label className={adminLabel}>More photo URLs (one per line, optional)<textarea name="photos" rows={3} defaultValue={vehicle?.photos.filter((p) => p !== vehicle.image_url).join("\n")} className={adminInput} /></label></div>
+      {owner && (
+        <div>
+          <label className={adminLabel}>Owner
+            <select name="partner_id" defaultValue={vehicle?.partner_id ?? ""} className={adminInput}>
+              <option value="">Alagu Vacations (own vehicle)</option>
+              {owner.partners.map((p) => (
+                <option key={p.id} value={p.id}>{p.business_name}{p.is_active ? "" : " (paused)"}</option>
+              ))}
+            </select>
+          </label>
+          <p className="mt-1 text-xs text-slate-500">Enquiries for a partner&apos;s vehicle go to that partner.</p>
+        </div>
+      )}
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" defaultChecked={vehicle?.is_active ?? true} /> Show on website</label>
       <div className="sm:col-span-2"><SubmitButton>{vehicle ? "Save changes" : "Add vehicle"}</SubmitButton></div>
     </ActionForm>
